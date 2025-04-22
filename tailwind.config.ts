@@ -61,7 +61,59 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				}
+				},
+				teal: {
+					DEFAULT: '#2A9D8F',
+					50: '#BEFBF3',
+					100: '#94F2E6',
+					200: '#6BE6D8',
+					300: '#41D9CA',
+					400: '#29C0B1',
+					500: '#2A9D8F',
+					600: '#1F756A',
+					700: '#154D45',
+					800: '#0A2421',
+					900: '#000000'
+				},
+				blue: {
+					DEFAULT: '#264653',
+					50: '#B0CCD8',
+					100: '#9EC0CE',
+					200: '#79A9BB',
+					300: '#5592A7',
+					400: '#3E7383',
+					500: '#264653',
+					600: '#1C343D',
+					700: '#122228',
+					800: '#081013',
+					900: '#000000'
+				},
+				purple: {
+					DEFAULT: '#9B87F5',
+					50: '#FFFFFF',
+					100: '#F6F4FE',
+					200: '#D9D1FC',
+					300: '#BCADF9',
+					400: '#9B87F5',
+					500: '#7A61F1',
+					600: '#492BED',
+					700: '#2711C9',
+					800: '#1C0D95',
+					900: '#120860'
+				},
+				meditation: {
+					DEFAULT: '#D1FAFF',
+					50: '#FFFFFF',
+					100: '#FFFFFF',
+					200: '#FFFFFF',
+					300: '#FFFFFF',
+					400: '#FAFDFE',
+					500: '#D1FAFF',
+					600: '#9EF5FF',
+					700: '#6BF0FF',
+					800: '#38EBFF',
+					900: '#05E6FF'
+				},
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
