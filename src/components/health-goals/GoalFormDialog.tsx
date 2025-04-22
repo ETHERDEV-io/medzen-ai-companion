@@ -72,11 +72,19 @@ export default function GoalFormDialog({
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
-    const { name, value, type, checked } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
+    const { name, value, type } = e.target;
+    if (type === "checkbox") {
+      // Only access checked if this is an input element of checkbox type
+      setForm((prev) => ({
+        ...prev,
+        [name]: (e.target as HTMLInputElement).checked,
+      }));
+    } else {
+      setForm((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
   };
 
   const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -134,31 +142,32 @@ export default function GoalFormDialog({
     setOpen(false);
   };
 
+  // Improved styling classes for the dialog popup and fields
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent>
+      <DialogContent className="rounded-xl border-none shadow-2xl bg-white dark:bg-zinc-900 max-w-md px-8 py-5">
         <DialogHeader>
-          <DialogTitle className="mb-1">
+          <DialogTitle className="mb-1 text-2xl font-extrabold tracking-tight text-primary">
             {editingGoal ? "Edit Goal" : "Add Goal"}
           </DialogTitle>
-          <DialogDescription>
-            Set a health goal with duration, track method, and progress.
+          <DialogDescription className="mb-3 text-base leading-snug">
+            Set a health goal with custom duration, progress tracking and exercise. Track calories burned, percent complete, and repeat daily if needed.
           </DialogDescription>
         </DialogHeader>
-        <form className="space-y-6" onSubmit={handleSubmit}>
-          <div className="space-y-2">
+        <form className="space-y-5" onSubmit={handleSubmit}>
+          <div className="space-y-1">
             <Label htmlFor="title" className="font-semibold">
               Goal Title
             </Label>
             <Input
               id="title"
               name="title"
-              placeholder="e.g. Run 2km, Read book"
+              placeholder="e.g. Run 2km, Read, Meditate"
               value={form.title}
               onChange={handleChange}
               required
               autoFocus
-              className="text-base"
+              className="text-base bg-gray-100 dark:bg-zinc-800"
             />
           </div>
 
@@ -174,6 +183,7 @@ export default function GoalFormDialog({
                 value={form.startDate}
                 onChange={handleChange}
                 required
+                className="bg-gray-100 dark:bg-zinc-800"
               />
             </div>
             <div>
@@ -187,6 +197,7 @@ export default function GoalFormDialog({
                 value={form.endDate}
                 onChange={handleChange}
                 required
+                className="bg-gray-100 dark:bg-zinc-800"
               />
             </div>
           </div>
@@ -197,9 +208,9 @@ export default function GoalFormDialog({
                 name="everyDay"
                 checked={form.everyDay}
                 onChange={handleChange}
-                className="w-5 h-5"
+                className="w-5 h-5 accent-primary"
               />
-              Repeat every day
+              <span className="text-sm text-muted-foreground">Repeat every day</span>
             </label>
           </div>
 
@@ -212,9 +223,9 @@ export default function GoalFormDialog({
                   key={m.value}
                   type="button"
                   className={clsx(
-                    "px-3 py-1 rounded border text-sm transition font-medium",
+                    "px-3 py-1 rounded-md border text-sm shadow-sm",
                     form.trackingMethod === m.value
-                      ? "border-primary bg-primary/10 text-primary"
+                      ? "border-primary bg-primary/10 text-primary font-extrabold"
                       : "border-border bg-background"
                   )}
                   onClick={() => handleTrackingMethod(m.value as any)}
@@ -229,7 +240,8 @@ export default function GoalFormDialog({
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label htmlFor="caloriesBurnTarget" className="font-semibold">
-                  Calories to Burn <span className="text-xs text-muted-foreground">(for selected activity)</span>
+                  Calories to Burn{" "}
+                  <span className="text-xs text-muted-foreground">(for selected activity)</span>
                 </Label>
                 <Input
                   id="caloriesBurnTarget"
@@ -239,6 +251,7 @@ export default function GoalFormDialog({
                   onChange={handleNumberChange}
                   min={0}
                   placeholder="e.g. 200"
+                  className="bg-gray-100 dark:bg-zinc-800"
                 />
               </div>
               <div>
@@ -253,6 +266,7 @@ export default function GoalFormDialog({
                   onChange={handleNumberChange}
                   min={0}
                   placeholder="How much did you burn today?"
+                  className="bg-gray-100 dark:bg-zinc-800"
                 />
               </div>
             </div>
@@ -270,6 +284,7 @@ export default function GoalFormDialog({
                 min={0}
                 max={100}
                 placeholder="How much of your goal did you complete?"
+                className="bg-gray-100 dark:bg-zinc-800"
               />
             </div>
           )}
@@ -284,6 +299,7 @@ export default function GoalFormDialog({
               placeholder="e.g. Jogging, Yoga"
               value={form.exercise}
               onChange={handleChange}
+              className="bg-gray-100 dark:bg-zinc-800"
             />
           </div>
 
@@ -292,10 +308,11 @@ export default function GoalFormDialog({
               variant="outline"
               type="button"
               onClick={() => setOpen(false)}
+              className="rounded-lg"
             >
               Cancel
             </Button>
-            <Button type="submit" className="font-semibold">
+            <Button type="submit" className="font-semibold rounded-lg px-7 py-2 text-base">
               {editingGoal ? "Update" : "Save"}
             </Button>
           </DialogFooter>
@@ -304,3 +321,5 @@ export default function GoalFormDialog({
     </Dialog>
   );
 }
+
+// src/components/health-goals/GoalFormDialog.tsx is now 307 lines long. Consider refactoring it into smaller components/files for maintainability.

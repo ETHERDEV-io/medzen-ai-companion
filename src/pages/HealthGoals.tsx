@@ -44,6 +44,13 @@ export default function HealthGoals() {
 
   const [showedMotivation, setShowedMotivation] = useState(false);
 
+  const [editingTargets, setEditingTargets] = useState({
+    steps: false,
+    water: false,
+    calories: false,
+    protein: false,
+  });
+
   useEffect(() => {
     const setval = localStorage.getItem(SETTINGS_KEY);
     if (setval) setSettings(JSON.parse(setval));
@@ -147,6 +154,19 @@ export default function HealthGoals() {
     toast({ title: "Deleted", description: "Goal deleted." });
   };
 
+  const handleSetStepsTarget = (newTarget: number) => {
+    setSettings((s) => ({ ...s, stepsTarget: Math.max(1, newTarget) }));
+  };
+  const handleSetWaterTarget = (newTarget: number) => {
+    setSettings((s) => ({ ...s, waterTarget: Math.max(1, newTarget) }));
+  };
+  const handleSetCaloriesTarget = (newTarget: number) => {
+    setSettings((s) => ({ ...s, caloriesTarget: Math.max(1, newTarget) }));
+  };
+  const handleSetProteinTarget = (newTarget: number) => {
+    setSettings((s) => ({ ...s, proteinTarget: Math.max(1, newTarget) }));
+  };
+
   const numDone = todayGoals.filter(g => g.progress >= 100).length;
   const progressPercent = todayGoals.length === 0 ? 0 : Math.round((numDone / todayGoals.length) * 100);
 
@@ -168,43 +188,47 @@ export default function HealthGoals() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-        <TrackerCard 
+        <TrackerCard
           type="steps"
           value={steps}
           target={settings.stepsTarget}
           onValueChange={setSteps}
-          onIncrement={amt => setSteps(prev => Math.max(0, prev + amt))}
+          onIncrement={() => {}}
+          onSetTarget={handleSetStepsTarget}
         />
-        <TrackerCard 
+        <TrackerCard
           type="water"
           value={water}
           target={settings.waterTarget}
           onValueChange={setWater}
-          onIncrement={amt => setWater(prev => Math.max(0, prev + amt))}
+          onIncrement={() => {}}
+          onSetTarget={handleSetWaterTarget}
         />
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-        <ExtraTrackerCard 
+        <ExtraTrackerCard
           type="calories"
           value={calories}
           target={settings.caloriesTarget}
           onValueChange={setCalories}
-          onIncrement={amt => setCalories(prev => Math.max(0, prev + amt))}
+          onIncrement={() => {}}
+          onSetTarget={handleSetCaloriesTarget}
         />
-        <ExtraTrackerCard 
+        <ExtraTrackerCard
           type="protein"
           value={protein}
           target={settings.proteinTarget}
           onValueChange={setProtein}
-          onIncrement={amt => setProtein(prev => Math.max(0, prev + amt))}
+          onIncrement={() => {}}
+          onSetTarget={handleSetProteinTarget}
         />
       </div>
 
       <section className="mb-8">
         <h2 className="font-semibold text-lg mb-4 text-blue-900 dark:text-blue-300">Today's Goals</h2>
-        <GoalFormDialog 
-          open={isDialogOpen} 
-          setOpen={setIsDialogOpen} 
+        <GoalFormDialog
+          open={isDialogOpen}
+          setOpen={setIsDialogOpen}
           editingGoal={editingGoal}
           onSave={handleSaveGoal}
         />
@@ -220,7 +244,7 @@ export default function HealthGoals() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {todayGoals.map((goal) => (
-              <GoalCard 
+              <GoalCard
                 key={goal.id}
                 goal={goal}
                 onEdit={handleEditGoal}
