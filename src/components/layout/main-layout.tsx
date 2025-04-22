@@ -1,4 +1,3 @@
-
 import { Link, useLocation } from "react-router-dom";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { 
@@ -52,18 +51,19 @@ export default function MainLayout({ children }: MainLayoutProps) {
 
   const navItems = [
     { path: "/dashboard", label: "Dashboard", icon: <Home size={20} /> },
-    { path: "/symptom-tracker", label: "Symptom Tracker", icon: <Activity size={20} /> },
+    // { path: "/symptom-tracker", label: "Symptom Tracker", icon: <Activity size={20} /> },
     { path: "/medications", label: "Medications", icon: <Pill size={20} /> },
     { path: "/health-goals", label: "Health Goals", icon: <Target size={20} /> },
     { path: "/symptom-checker", label: "Symptom Checker", icon: <Thermometer size={20} /> },
     { path: "/ai-assistant", label: "AI Assistant", icon: <Bot size={20} /> },
+    { path: "/legal", label: "Legal", icon: <Shield size={20} /> },
   ];
 
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
       {/* Header */}
       <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 items-center justify-between">
+        <div className="container flex h-16 items-center justify-between w-full px-2 sm:px-4">
           <div className="flex items-center gap-2">
             <Sheet open={isMobileNavOpen} onOpenChange={setIsMobileNavOpen}>
               <SheetTrigger asChild className="md:hidden">
@@ -116,7 +116,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
       </header>
 
       {/* Main content */}
-      <main className="flex-1">
+      <main className="flex-1 min-h-[80vh]">
         {children}
       </main>
 
@@ -127,11 +127,14 @@ export default function MainLayout({ children }: MainLayoutProps) {
             &copy; {new Date().getFullYear()} MedZen. All rights reserved.
           </p>
           <div className="flex items-center gap-4">
-            <Link to="/privacy" className="text-sm text-muted-foreground hover:underline">
-              Privacy
+            <Link to="/privacy" className="text-sm text-muted-foreground hover:underline flex items-center gap-1">
+              <Shield size={15} /> Privacy
             </Link>
-            <Link to="/terms" className="text-sm text-muted-foreground hover:underline">
-              Terms
+            <Link to="/terms" className="text-sm text-muted-foreground hover:underline flex items-center gap-1">
+              <ShieldOff size={15} /> Terms
+            </Link>
+            <Link to="/legal" className="text-sm text-muted-foreground hover:underline flex items-center gap-1">
+              <Shield size={15} /> Legal
             </Link>
           </div>
         </div>
@@ -139,3 +142,4 @@ export default function MainLayout({ children }: MainLayoutProps) {
     </div>
   );
 }
+import { Shield, ShieldOff } from "lucide-react";

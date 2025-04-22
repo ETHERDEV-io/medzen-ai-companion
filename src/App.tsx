@@ -15,6 +15,7 @@ import SymptomChecker from "./pages/SymptomChecker";
 import AIAssistant from "./pages/AIAssistant";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
+import Legal from "./pages/Legal";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +35,7 @@ const App = () => (
             <Route path="/ai-assistant" element={<MainLayout><AIAssistant /></MainLayout>} />
             <Route path="/privacy" element={<MainLayout><Privacy /></MainLayout>} />
             <Route path="/terms" element={<MainLayout><Terms /></MainLayout>} />
+            <Route path="/legal" element={<MainLayout><Legal /></MainLayout>} />
             <Route path="*" element={<MainLayout><NotFound /></MainLayout>} />
           </Routes>
         </BrowserRouter>

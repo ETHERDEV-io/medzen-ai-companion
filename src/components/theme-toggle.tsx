@@ -1,42 +1,53 @@
 
 import * as React from "react"
 import { Moon, Sun } from "lucide-react"
-import { useTheme } from "next-themes"
-
 import { Button } from "@/components/ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+import { Switch } from "@/components/ui/switch"
+
+const THEME_KEY = "medzen-theme";
+
+function getStoredTheme() {
+  const stored = localStorage.getItem(THEME_KEY);
+  if (stored === "light") return "light";
+  if (stored === "dark") return "dark";
+  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
 
 export function ThemeToggle() {
-  const { setTheme, theme } = useTheme()
+  const [theme, setTheme] = React.useState<"light" | "dark">(getStoredTheme());
+
+  React.useEffect(() => {
+    if (theme === "dark") {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem(THEME_KEY, "dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem(THEME_KEY, "light");
+    }
+  }, [theme]);
+
+  // Listen to system theme change
+  React.useEffect(() => {
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    const fn = () => {
+      if (!localStorage.getItem(THEME_KEY)) {
+        setTheme(mq.matches ? "dark" : "light");
+      }
+    };
+    mq.addEventListener("change", fn);
+    return () => mq.removeEventListener("change", fn);
+  }, []);
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative h-9 w-9 rounded-full">
-          <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-          <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-          <span className="sr-only">Toggle theme</span>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => setTheme("light")}>
-          <Sun className="mr-2 h-4 w-4" />
-          <span>Light</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("dark")}>
-          <Moon className="mr-2 h-4 w-4" />
-          <span>Dark</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("system")}>
-          <span className="mr-2 h-4 w-4">🖥️</span>
-          <span>System</span>
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <div className="flex items-center gap-1 px-1.5 rounded-lg bg-muted/10 transition-colors">
+      <Sun className="h-4 w-4 text-yellow-400" />
+      <Switch
+        checked={theme === "dark"}
+        onCheckedChange={(checked: boolean) => setTheme(checked ? "dark" : "light")}
+        aria-label="Toggle theme"
+        className="mx-1"
+      />
+      <Moon className="h-4 w-4 text-blue-500" />
+    </div>
   )
 }
