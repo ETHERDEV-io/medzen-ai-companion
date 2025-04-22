@@ -1,68 +1,59 @@
 
 import { useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { Target, Plus, Dumbbell, Activity, Droplet, Gauge, Weight } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
-import { Goal } from "@/types/health-goals";
-import GoalCard from "@/components/health-goals/GoalCard";
-import TrackerCard from "@/components/health-goals/TrackerCard";
-import { ExtraTrackerCard } from "@/components/health-goals/ExtraTrackers";
+import { Dumbbell, Plus, Target } from "lucide-react";
 import ProgressWheel from "@/components/health-goals/ProgressWheel";
 import GoalFormDialog from "@/components/health-goals/GoalFormDialog";
+import { useToast } from "@/hooks/use-toast";
+import { Goal } from "@/types/health-goals";
+import SimpleTracker from "@/components/health-goals/SimpleTracker";
+import GoalCard from "@/components/health-goals/GoalCard";
+import { Button } from "@/components/ui/button";
 
 const GOALS_KEY = "medzen-health-goals-v2";
-const DAILY_KEY_PREFIX = "medzen-healthgoals-day";
 const SETTINGS_KEY = "medzen-program-settings";
 
 function getToday() {
   return new Date().toISOString().slice(0, 10);
 }
 
-function getTodayKey(base: string) {
-  return `${base}:${getToday()}`;
-}
-
 export default function HealthGoals() {
   const { toast } = useToast();
 
-  const [settings, setSettings] = useState({
-    stepsTarget: 10000,
-    waterTarget: 8,
-    caloriesTarget: 2000,
-    proteinTarget: 120,
-  });
-
-  const [steps, setSteps] = useState(0);
-  const [water, setWater] = useState(0);
-  const [calories, setCalories] = useState(0);
-  const [protein, setProtein] = useState(0);
+  // Simple settings/state for user-tracked numbers
+  const [trackers, setTrackers] = useState([
+    { key: "steps", label: "Steps", value: 0, target: 10000, unit: "steps", color: "indigo" },
+    { key: "water", label: "Water", value: 0, target: 8, unit: "cups", color: "sky" },
+    { key: "calories", label: "Calories", value: 0, target: 2000, unit: "kcal", color: "orange" },
+    { key: "protein", label: "Protein", value: 0, target: 120, unit: "g", color: "green" },
+  ]);
 
   const [goals, setGoals] = useState<Goal[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
 
-  const [showedMotivation, setShowedMotivation] = useState(false);
-
+  // Persistent load/save for trackers
   useEffect(() => {
-    const setval = localStorage.getItem(SETTINGS_KEY);
-    if (setval) setSettings(JSON.parse(setval));
-    setSteps(Number(localStorage.getItem(getTodayKey("steps")) || 0));
-    setWater(Number(localStorage.getItem(getTodayKey("water")) || 0));
-    setCalories(Number(localStorage.getItem(getTodayKey("calories")) || 0));
-    setProtein(Number(localStorage.getItem(getTodayKey("protein")) || 0));
+    const saved = localStorage.getItem("simple-health-tracking");
+    saved && setTrackers(JSON.parse(saved));
     const raw = localStorage.getItem(GOALS_KEY);
     setGoals(raw ? JSON.parse(raw) : []);
   }, []);
+  useEffect(() => {
+    localStorage.setItem("simple-health-tracking", JSON.stringify(trackers));
+  }, [trackers]);
+  useEffect(() => {
+    localStorage.setItem(GOALS_KEY, JSON.stringify(goals));
+  }, [goals]);
 
-  useEffect(() => { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); }, [settings]);
-  useEffect(() => { localStorage.setItem(getTodayKey("steps"), String(steps)); }, [steps]);
-  useEffect(() => { localStorage.setItem(getTodayKey("water"), String(water)); }, [water]);
-  useEffect(() => { localStorage.setItem(getTodayKey("calories"), String(calories)); }, [calories]);
-  useEffect(() => { localStorage.setItem(getTodayKey("protein"), String(protein)); }, [protein]);
-  useEffect(() => { localStorage.setItem(GOALS_KEY, JSON.stringify(goals)); }, [goals]);
+  // Overall progress for "wheel"
+  const flatProgress = trackers.reduce((acc, t) => {
+    const percent = Math.min(100, Math.round((t.value / (t.target || 1)) * 100));
+    return acc + percent;
+  }, 0);
+  const progressPercent = Math.round(flatProgress / trackers.length);
 
+  // Minimal goal handling
   const today = getToday();
   const todayGoals = goals.filter(g => {
     if (!g.startDate || !g.endDate) return false;
@@ -71,191 +62,116 @@ export default function HealthGoals() {
     return afterStart && beforeEnd && (g.everyDay || g.startDate === today);
   });
 
-  useEffect(() => {
-    if (showedMotivation) return;
-    const now = new Date();
-    if (now.getHours() >= 23 && now.getMinutes() >= 55) {
-      const allDone = todayGoals.every(g => g.completedToday);
-      if (todayGoals.length === 0) return;
-      if (allDone) {
-        toast({ title: "Congratulations!", description: "You finished all your goals for today! 🎉" });
-      } else {
-        toast({ title: "Keep Going!", description: "Not every goal is complete yet. You can do it!" });
-      }
-      setShowedMotivation(true);
-    }
-  }, [showedMotivation, todayGoals, toast]);
-
-  useEffect(() => {
-    todayGoals.forEach(goal => {
-      if (goal.completedToday && goal.progress === 100) {
-        toast({ title: "Goal Completed!", description: `Well done on: "${goal.title}"` });
-      }
-    });
-    if (todayGoals.some(g => !g.completedToday && g.progress < 100)) {
-      if (!showedMotivation) {
-        toast({ title: "Stay motivated!", description: "Come back and finish your remaining goals for today." });
-        setShowedMotivation(true);
-      }
-    }
-  }, [todayGoals, toast, showedMotivation]);
-
-  const openAddDialog = () => {
+  const handleOpenAddGoal = () => {
     setEditingGoal(null);
     setIsDialogOpen(true);
   };
 
   const handleSaveGoal = (goalData: Omit<Goal, "id" | "completedToday" | "progress">) => {
-    const defaultCalc = goalData.caloriesBurnTarget && goalData.caloriesBurnedToday
-      ? Math.round((goalData.caloriesBurnedToday / goalData.caloriesBurnTarget) * 100)
-      : 0;
-    const todayVal = today >= goalData.startDate && today <= goalData.endDate;
-    const isCompleted = defaultCalc >= 100 && todayVal;
     if (editingGoal) {
       setGoals((prev) =>
         prev.map((g) =>
           g.id === editingGoal.id
-            ? {
-                ...g,
-                ...goalData,
-                progress: defaultCalc,
-                completedToday: isCompleted,
-              }
+            ? { ...g, ...goalData }
             : g
         )
       );
-      toast({ title: "Updated", description: "Goal updated." });
+      toast({ title: "Goal updated." });
     } else {
       setGoals((prev) => [
         ...prev,
         {
           ...goalData,
           id: uuidv4(),
-          completedToday: isCompleted,
-          progress: defaultCalc,
+          completedToday: false,
+          progress: 0,
         },
       ]);
-      toast({ title: "Added", description: "Goal added." });
+      toast({ title: "Goal added." });
     }
-    setEditingGoal(null);
     setIsDialogOpen(false);
+    setEditingGoal(null);
   };
 
-  const handleEditGoal = (goal: Goal) => { setEditingGoal(goal); setIsDialogOpen(true); };
+  const handleEditGoal = (goal: Goal) => {
+    setEditingGoal(goal);
+    setIsDialogOpen(true);
+  };
 
   const handleDeleteGoal = (id: string) => {
     setGoals((prev) => prev.filter(g => g.id !== id));
-    toast({ title: "Deleted", description: "Goal deleted." });
+    toast({ title: "Goal deleted." });
   };
 
-  const handleSetStepsTarget = (newTarget: number) => {
-    setSettings((s) => ({ ...s, stepsTarget: Math.max(1, newTarget) }));
-  };
-  const handleSetWaterTarget = (newTarget: number) => {
-    setSettings((s) => ({ ...s, waterTarget: Math.max(1, newTarget) }));
-  };
-  const handleSetCaloriesTarget = (newTarget: number) => {
-    setSettings((s) => ({ ...s, caloriesTarget: Math.max(1, newTarget) }));
-  };
-  const handleSetProteinTarget = (newTarget: number) => {
-    setSettings((s) => ({ ...s, proteinTarget: Math.max(1, newTarget) }));
+  const handleChangeTracker = (index: number, value: number) => {
+    setTrackers(t =>
+      t.map((tracker, i) => (i === index ? { ...tracker, value } : tracker))
+    );
   };
 
-  const numDone = todayGoals.filter(g => g.progress >= 100).length;
-  const progressPercent = todayGoals.length === 0 ? 0 : Math.round((numDone / todayGoals.length) * 100);
+  const handleChangeTarget = (index: number, target: number) => {
+    setTrackers(t =>
+      t.map((tracker, i) => (i === index ? { ...tracker, target } : tracker))
+    );
+  };
 
   return (
-    <div className="container mx-auto py-5 px-2 md:px-4 max-w-5xl">
-      <div className="bg-gradient-to-r from-purple-100 to-indigo-100 dark:from-purple-900/40 dark:to-indigo-900/40 rounded-xl p-6 mb-8 shadow-md">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-2">
-          <h1 className="text-3xl font-bold flex items-center gap-2 text-indigo-900 dark:text-indigo-100">
-            <Dumbbell className="w-8 h-8 text-indigo-600 dark:text-indigo-300" /> Health Goals
-          </h1>
-          <div className="flex gap-2 w-full md:w-auto justify-end">
-            <Button className="gap-2 w-full md:w-auto bg-indigo-600 hover:bg-indigo-700" onClick={openAddDialog}>
-              <Plus className="w-4 h-4" /> Add Goal
-            </Button>
+    <div className="max-w-2xl mx-auto py-6 px-2">
+      <div className="bg-gradient-to-r from-indigo-100 to-purple-100 dark:from-indigo-950/70 dark:to-purple-900/70 rounded-xl p-6 mb-8 shadow-md">
+        <h1 className="text-2xl font-bold flex items-center gap-2 text-indigo-900 dark:text-indigo-100 mb-1">
+          <Dumbbell className="w-7 h-7 text-indigo-600" />
+          My Health Goals
+        </h1>
+        <div className="flex flex-col md:flex-row items-center gap-4 my-4">
+          <ProgressWheel percent={progressPercent} />
+          <div className="flex-1 grid grid-cols-1 gap-2">
+            {trackers.map((tracker, idx) => (
+              <SimpleTracker
+                key={tracker.key}
+                label={tracker.label}
+                color={tracker.color}
+                unit={tracker.unit}
+                value={tracker.value}
+                target={tracker.target}
+                onValueChange={val => handleChangeTracker(idx, val)}
+                onTargetChange={val => handleChangeTarget(idx, val)}
+              />
+            ))}
           </div>
         </div>
-        <p className="text-indigo-700 dark:text-indigo-300 mb-3">Track your daily health metrics and personal goals in one place</p>
-        
-        <div className="flex justify-center my-4">
-          <ProgressWheel percent={progressPercent} />
-        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-        <TrackerCard
-          type="steps"
-          value={steps}
-          target={settings.stepsTarget}
-          onValueChange={setSteps}
-          onIncrement={() => {}}
-          onSetTarget={handleSetStepsTarget}
-        />
-        <TrackerCard
-          type="water"
-          value={water}
-          target={settings.waterTarget}
-          onValueChange={setWater}
-          onIncrement={() => {}}
-          onSetTarget={handleSetWaterTarget}
-        />
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-        <ExtraTrackerCard
-          type="calories"
-          value={calories}
-          target={settings.caloriesTarget}
-          onValueChange={setCalories}
-          onIncrement={() => {}}
-          onSetTarget={handleSetCaloriesTarget}
-        />
-        <ExtraTrackerCard
-          type="protein"
-          value={protein}
-          target={settings.proteinTarget}
-          onValueChange={setProtein}
-          onIncrement={() => {}}
-          onSetTarget={handleSetProteinTarget}
-        />
-      </div>
-
-      <section className="mb-8">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="font-semibold text-xl text-indigo-900 dark:text-indigo-300 flex items-center gap-2">
-            <Target className="w-5 h-5 text-indigo-600" /> Today's Goals
+      <section className="mb-10">
+        <div className="flex justify-between items-center mb-2">
+          <h2 className="font-semibold text-xl text-indigo-900 dark:text-indigo-200 flex items-center gap-2">
+            <Target className="w-5 h-5 text-indigo-600" /> Goals for Today
           </h2>
-          <span className="text-sm text-muted-foreground">{today}</span>
+          <Button onClick={handleOpenAddGoal} className="gap-2 bg-indigo-600 hover:bg-indigo-700">
+            <Plus /> Add Goal
+          </Button>
         </div>
-        
         <GoalFormDialog
           open={isDialogOpen}
           setOpen={setIsDialogOpen}
           editingGoal={editingGoal}
           onSave={handleSaveGoal}
         />
-        
         {todayGoals.length === 0 ? (
-          <Card className="mt-8 border-dashed border-2 border-muted-foreground/30">
-            <CardContent className="py-12 text-center text-muted-foreground">
-              <div className="mb-4 flex justify-center">
-                <Target className="h-12 w-12 text-muted-foreground/50" />
-              </div>
-              <p className="mb-2">No health goals for today</p>
-              <Button variant="outline" onClick={openAddDialog} className="mt-2">
-                <Plus className="w-4 h-4 mr-1" /> Add Your First Goal
-              </Button>
-            </CardContent>
-          </Card>
+          <div className="text-center text-sm text-muted-foreground py-8 border border-dashed border-indigo-300 rounded-xl bg-indigo-50 dark:bg-indigo-900/40 mt-4">
+            <p>No extra goals for today.</p>
+            <Button variant="outline" onClick={handleOpenAddGoal} className="mt-2">
+              <Plus className="w-4 h-4 mr-1" /> Add Goal
+            </Button>
+          </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {todayGoals.map((goal) => (
+          <div className="grid grid-cols-1 gap-3 mt-3">
+            {todayGoals.map(goal => (
               <GoalCard
                 key={goal.id}
                 goal={goal}
                 onEdit={handleEditGoal}
                 onDelete={handleDeleteGoal}
+                simple
               />
             ))}
           </div>
