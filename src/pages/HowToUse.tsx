@@ -1,5 +1,4 @@
-
-import { HelpCircle, Target, Droplet, Activity, Pills, Bot } from "lucide-react";
+import { HelpCircle, Target, Droplet, Activity, Pill, Bot } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
 const steps = [
@@ -19,7 +18,7 @@ const steps = [
     desc: "Log your water intake easily with a tap to stay hydrated all day."
   },
   {
-    icon: <Pills className="text-pink-500 w-6 h-6" />,
+    icon: <Pill className="text-pink-500 w-6 h-6" />,
     title: "Manage Medications",
     desc: "Add, update, or remove medications. Get reminders for refills and visualize your medication schedule."
   },
