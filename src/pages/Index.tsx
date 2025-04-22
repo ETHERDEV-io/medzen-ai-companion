@@ -23,7 +23,6 @@ import {
 } from "@/components/ui/accordion";
 import { useEffect, useRef, useState } from "react";
 
-// Animation helper for scroll reveal
 const useScrollReveal = () => {
   const [isIntersecting, setIsIntersecting] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -51,7 +50,6 @@ const useScrollReveal = () => {
   return [ref, isIntersecting] as const;
 };
 
-// Feature Card Component
 interface FeatureCardProps {
   icon: React.ReactNode;
   title: string;
@@ -82,7 +80,6 @@ const FeatureCard = ({ icon, title, description, delay = 0 }: FeatureCardProps) 
   );
 };
 
-// Step Card Component
 interface StepCardProps {
   number: number;
   title: string;
@@ -197,45 +194,31 @@ const Index = () => {
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <FeatureCard
-              icon={<Activity size={28} />}
-              title="Symptom Tracker"
-              description="Log and monitor your symptoms over time to identify patterns and triggers."
-              delay={100}
-            />
-            
-            <FeatureCard
               icon={<Pill size={28} />}
               title="Medication Management"
               description="Keep track of your medications, dosages, and schedules with smart reminders."
-              delay={200}
+              delay={100}
             />
             
             <FeatureCard
               icon={<Target size={28} />}
               title="Health Goals"
               description="Set personalized health goals and track your progress with visual metrics."
-              delay={300}
+              delay={200}
             />
             
             <FeatureCard
               icon={<Search size={28} />}
               title="Symptom Checker"
-              description="Identify potential conditions based on your symptoms with our AI-powered tool."
-              delay={400}
-            />
-            
-            <FeatureCard
-              icon={<Calendar size={28} />}
-              title="Health Timeline"
-              description="Visualize your health journey with an interactive timeline of events and milestones."
-              delay={500}
+              description="Select your symptoms and analyze them for potential conditions."
+              delay={300}
             />
             
             <FeatureCard
               icon={<Bot size={28} />}
               title="AI Health Assistant"
               description="Get personalized health insights and answers to your questions using advanced AI."
-              delay={600}
+              delay={400}
             />
           </div>
         </div>

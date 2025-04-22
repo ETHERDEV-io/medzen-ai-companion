@@ -8,9 +8,7 @@ import MainLayout from "@/components/layout/main-layout";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 
-// Import all pages
 import Dashboard from "./pages/Dashboard";
-import SymptomTracker from "./pages/SymptomTracker";
 import Medications from "./pages/Medications";
 import HealthGoals from "./pages/HealthGoals";
 import SymptomChecker from "./pages/SymptomChecker";
@@ -30,14 +28,12 @@ const App = () => (
           <Routes>
             <Route path="/" element={<MainLayout><Index /></MainLayout>} />
             <Route path="/dashboard" element={<MainLayout><Dashboard /></MainLayout>} />
-            <Route path="/symptom-tracker" element={<MainLayout><SymptomTracker /></MainLayout>} />
             <Route path="/medications" element={<MainLayout><Medications /></MainLayout>} />
             <Route path="/health-goals" element={<MainLayout><HealthGoals /></MainLayout>} />
             <Route path="/symptom-checker" element={<MainLayout><SymptomChecker /></MainLayout>} />
             <Route path="/ai-assistant" element={<MainLayout><AIAssistant /></MainLayout>} />
             <Route path="/privacy" element={<MainLayout><Privacy /></MainLayout>} />
             <Route path="/terms" element={<MainLayout><Terms /></MainLayout>} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<MainLayout><NotFound /></MainLayout>} />
           </Routes>
         </BrowserRouter>

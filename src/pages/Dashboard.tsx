@@ -1,10 +1,8 @@
-
 import { Link } from "react-router-dom";
 import { Activity, Brain, Calendar, ChevronRight, Clock, Pill, Target, User } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
-// Get time of day greeting
 const getTimeOfDayGreeting = () => {
   const hours = new Date().getHours();
   if (hours < 12) return "Good morning";
@@ -17,9 +15,7 @@ const Dashboard = () => {
     <div className="container mx-auto py-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold">{getTimeOfDayGreeting()}</h1>
-        <p className="text-muted-foreground mt-1">
-          Welcome to your health dashboard
-        </p>
+        <p className="text-muted-foreground mt-1">Welcome to your health dashboard</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -29,8 +25,8 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent className="space-y-3">
             <Button variant="outline" className="w-full justify-between" asChild>
-              <Link to="/symptom-tracker">
-                Track a symptom
+              <Link to="/symptom-checker">
+                Use Symptom Checker
                 <ChevronRight className="h-4 w-4" />
               </Link>
             </Button>
@@ -51,12 +47,12 @@ const Dashboard = () => {
           <CardContent>
             <div className="text-2xl font-bold">--</div>
             <p className="text-xs text-muted-foreground">
-              Logged symptoms this week
+              Use symptom checker
             </p>
           </CardContent>
           <CardFooter>
             <Button variant="ghost" size="sm" className="w-full" asChild>
-              <Link to="/symptom-tracker">View Symptoms</Link>
+              <Link to="/symptom-checker">Symptom Checker</Link>
             </Button>
           </CardFooter>
         </Card>
