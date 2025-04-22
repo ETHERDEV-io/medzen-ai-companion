@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { Target, Plus, Trash, Edit2, Check, Activity, Droplet } from "lucide-react";
+import { Target, Plus, Trash, Edit2, Check, Activity, Droplet, Award, Brain, Heart, Calendar } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogContent, DialogFooter } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Slider } from "@/components/ui/slider";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 // --- Types & Constants ---
 interface Goal {
@@ -30,6 +31,21 @@ function getTodayKey(key: string) {
   const today = new Date().toISOString().slice(0, 10);
   return `${key}:${today}`;
 }
+
+// --- Premium Feature Components ---
+const PremiumFeatureCard = ({ icon, title, description }: { icon: React.ReactNode, title: string, description: string }) => (
+  <Card className="border dark:border-blue-700/40 bg-gradient-to-br from-purple-50/80 to-blue-100/60 dark:from-purple-950/40 dark:to-blue-900/40 shadow-sm">
+    <CardHeader className="pb-2">
+      <CardTitle className="flex gap-2 items-center text-lg">
+        {icon}
+        {title}
+      </CardTitle>
+    </CardHeader>
+    <CardContent>
+      <p className="text-sm text-muted-foreground">{description}</p>
+    </CardContent>
+  </Card>
+);
 
 // --- Main ---
 export default function HealthGoals() {
@@ -130,149 +146,309 @@ export default function HealthGoals() {
         <h1 className="text-3xl font-bold flex items-center gap-2">
           <Target className="w-7 h-7 text-primary" /> Health Goals
         </h1>
-        <Button className="gap-2 w-full md:w-auto" onClick={openAddDialog}>
-          <Plus className="w-4 h-4" /> Add Goal
-        </Button>
+        <div className="flex gap-2 w-full md:w-auto justify-end">
+          <Button className="gap-2 w-full md:w-auto" onClick={openAddDialog}>
+            <Plus className="w-4 h-4" /> Add Goal
+          </Button>
+        </div>
       </div>
 
-      {/* Trackers Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-        {/* Steps */}
-        <Card className="bg-gradient-to-tr from-blue-100/80 to-blue-400/30 dark:from-blue-700/40 dark:to-blue-900/60 border-2 border-blue-300/40 dark:border-blue-600/40 shadow-lg">
-          <CardHeader className="flex-row gap-3 items-center pb-2">
-            <Activity className="w-7 h-7 text-blue-700 dark:text-blue-200" />
-            <CardTitle className="text-blue-800 dark:text-blue-100">Step Tracker</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col items-start space-y-2">
-              <span className="text-3xl font-semibold">{steps.toLocaleString()} <span className="text-base text-muted-foreground">/ {STEP_DAILY_TARGET}</span></span>
-              <div className="w-full h-3 rounded-full bg-blue-100 dark:bg-blue-900/40 overflow-hidden my-1">
-                <div className="h-full rounded-full transition-all duration-500 bg-blue-400" style={{ width: `${stepPercent}%` }} />
-              </div>
-              <div className="flex items-center gap-2 w-full">
-                <Button size="icon" variant="secondary" onClick={() => addStep(-500)} className="rounded-full">-500</Button>
-                <Input 
-                  className="w-24 text-center border-gray-300 dark:border-gray-700" 
-                  type="number" 
-                  min={0}
-                  max={STEP_DAILY_TARGET * 2}
-                  value={steps} 
-                  onChange={handleStepChange} 
-                />
-                <Button size="icon" variant="secondary" onClick={() => addStep(500)} className="rounded-full">+500</Button>
-              </div>
-              <div className="text-xs text-muted-foreground">{stepPercent}% of daily goal</div>
-            </div>
-          </CardContent>
-        </Card>
-        {/* Water */}
-        <Card className="bg-gradient-to-tr from-teal-100/80 to-teal-300/30 dark:from-teal-700/40 dark:to-teal-900/60 border-2 border-teal-300/40 dark:border-teal-600/40 shadow-lg">
-          <CardHeader className="flex-row gap-3 items-center pb-2">
-            <Droplet className="w-7 h-7 text-teal-700 dark:text-teal-200" />
-            <CardTitle className="text-teal-800 dark:text-teal-100">Water Tracker</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col items-start space-y-2">
-              <span className="text-3xl font-semibold">{water}</span>
-              <span className="text-muted-foreground text-base">cups / {WATER_DAILY_TARGET} cups goal</span>
-              <div className="flex items-center gap-2 w-full my-2">
-                <Button size="icon" variant="secondary" onClick={() => handleWaterClick(-1)} className="rounded-full">-1</Button>
-                <Button size="icon" variant="secondary" onClick={() => handleWaterClick(1)} className="rounded-full">+1</Button>
-              </div>
-              <div className="w-full h-3 rounded-full bg-teal-100 dark:bg-teal-900/40 overflow-hidden">
-                <div className="h-full rounded-full transition-all duration-500 bg-teal-400" style={{ width: `${waterPercent}%` }} />
-              </div>
-              <div className="text-xs text-muted-foreground">{waterPercent}% of daily goal</div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Tabs for Basic and Premium Features */}
+      <Tabs defaultValue="basic" className="mb-8">
+        <TabsList className="grid w-full grid-cols-2 mb-6">
+          <TabsTrigger value="basic">Basic Features</TabsTrigger>
+          <TabsTrigger value="premium">Premium Features</TabsTrigger>
+        </TabsList>
 
-      {/* Health Goals Section */}
-      <section>
-        <h2 className="font-semibold text-lg mb-4 text-blue-900 dark:text-blue-300">Personal Goals</h2>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>{editingId ? "Edit Goal" : "Add Goal"}</DialogTitle>
-              <DialogDescription>Set your health goal</DialogDescription>
-            </DialogHeader>
-            <form className="space-y-4" onSubmit={handleSubmit}>
-              <div>
-                <Label htmlFor="title">Goal Title</Label>
-                <Input id="title" name="title" value={form.title} onChange={handleChange} required />
-              </div>
-              <div>
-                <Label htmlFor="category">Category</Label>
-                <Input id="category" name="category" value={form.category} onChange={handleChange} />
-              </div>
-              <div>
-                <Label htmlFor="progress">Progress</Label>
-                <Slider min={0} max={100} step={1} defaultValue={[form.progress]} value={[form.progress]} onValueChange={handleProgressChange} />
-                <div className="text-xs text-muted-foreground mt-1">{form.progress}%</div>
-              </div>
-              <DialogFooter>
-                <Button variant="outline" type="button" onClick={() => setIsDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button type="submit">{editingId ? "Update" : "Add"}</Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
-        {goals.length === 0 ? (
-          <Card className="mt-8">
-            <CardContent className="py-12 text-center text-muted-foreground">
-              <div className="mb-4 flex justify-center">
-                <Target className="h-8 w-8 text-primary" />
-              </div>
-              <p>No health goals yet.</p>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {goals.map((goal) => (
-              <Card key={goal.id} className="relative border dark:border-blue-700/40 bg-gradient-to-br from-purple-50 to-blue-100 dark:from-purple-950/40 dark:to-blue-900/40 shadow-sm">
-                <CardHeader className="pb-2">
-                  <CardTitle className="flex gap-2 items-center">{goal.title}</CardTitle>
-                  <CardDescription>
-                    {goal.category && <span>{goal.category}</span>}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="mb-2">
-                    <div className="w-full h-2 rounded-full bg-muted overflow-hidden">
-                      <div
-                        className={`h-full rounded-full transition-all duration-500 ${progressColor(goal.progress)}`}
-                        style={{ width: `${goal.progress}%` }}
-                      />
-                    </div>
-                    <div className="flex justify-between text-xs mt-1 text-muted-foreground">
-                      <span>
-                        {goal.progress < 100
-                          ? `${goal.progress}%`
-                          : (
-                            <span className="inline-flex items-center gap-1 text-green-500">
-                              Completed <Check className="w-3 h-3" />
-                            </span>
-                          )}
-                      </span>
-                    </div>
+        <TabsContent value="basic">
+          {/* Trackers Row */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+            {/* Steps */}
+            <Card className="bg-gradient-to-tr from-blue-100/80 to-blue-400/30 dark:from-blue-700/40 dark:to-blue-900/60 border-2 border-blue-300/40 dark:border-blue-600/40 shadow-lg">
+              <CardHeader className="flex-row gap-3 items-center pb-2">
+                <Activity className="w-7 h-7 text-blue-700 dark:text-blue-200" />
+                <CardTitle className="text-blue-800 dark:text-blue-100">Step Tracker</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-col items-start space-y-2">
+                  <span className="text-3xl font-semibold">{steps.toLocaleString()} <span className="text-base text-muted-foreground">/ {STEP_DAILY_TARGET}</span></span>
+                  <div className="w-full h-3 rounded-full bg-blue-100 dark:bg-blue-900/40 overflow-hidden my-1">
+                    <div className="h-full rounded-full transition-all duration-500 bg-blue-400" style={{ width: `${stepPercent}%` }} />
                   </div>
-                </CardContent>
-                <CardFooter className="flex gap-2">
-                  <Button variant="ghost" size="icon" onClick={() => handleEdit(goal)}>
-                    <Edit2 className="w-4 h-4" />
-                  </Button>
-                  <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDelete(goal.id)}>
-                    <Trash className="w-4 h-4" />
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
+                  <div className="flex items-center gap-2 w-full">
+                    <Button size="icon" variant="secondary" onClick={() => addStep(-500)} className="rounded-full">-500</Button>
+                    <Input 
+                      className="w-24 text-center border-gray-300 dark:border-gray-700" 
+                      type="number" 
+                      min={0}
+                      max={STEP_DAILY_TARGET * 2}
+                      value={steps} 
+                      onChange={handleStepChange} 
+                    />
+                    <Button size="icon" variant="secondary" onClick={() => addStep(500)} className="rounded-full">+500</Button>
+                  </div>
+                  <div className="text-xs text-muted-foreground">{stepPercent}% of daily goal</div>
+                </div>
+              </CardContent>
+            </Card>
+            {/* Water */}
+            <Card className="bg-gradient-to-tr from-teal-100/80 to-teal-300/30 dark:from-teal-700/40 dark:to-teal-900/60 border-2 border-teal-300/40 dark:border-teal-600/40 shadow-lg">
+              <CardHeader className="flex-row gap-3 items-center pb-2">
+                <Droplet className="w-7 h-7 text-teal-700 dark:text-teal-200" />
+                <CardTitle className="text-teal-800 dark:text-teal-100">Water Tracker</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-col items-start space-y-2">
+                  <span className="text-3xl font-semibold">{water}</span>
+                  <span className="text-muted-foreground text-base">cups / {WATER_DAILY_TARGET} cups goal</span>
+                  <div className="flex items-center gap-2 w-full my-2">
+                    <Button size="icon" variant="secondary" onClick={() => handleWaterClick(-1)} className="rounded-full">-1</Button>
+                    <Button size="icon" variant="secondary" onClick={() => handleWaterClick(1)} className="rounded-full">+1</Button>
+                  </div>
+                  <div className="w-full h-3 rounded-full bg-teal-100 dark:bg-teal-900/40 overflow-hidden">
+                    <div className="h-full rounded-full transition-all duration-500 bg-teal-400" style={{ width: `${waterPercent}%` }} />
+                  </div>
+                  <div className="text-xs text-muted-foreground">{waterPercent}% of daily goal</div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
-        )}
-      </section>
+
+          {/* Health Goals Section */}
+          <section>
+            <h2 className="font-semibold text-lg mb-4 text-blue-900 dark:text-blue-300">Personal Goals</h2>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>{editingId ? "Edit Goal" : "Add Goal"}</DialogTitle>
+                  <DialogDescription>Set your health goal</DialogDescription>
+                </DialogHeader>
+                <form className="space-y-4" onSubmit={handleSubmit}>
+                  <div>
+                    <Label htmlFor="title">Goal Title</Label>
+                    <Input id="title" name="title" value={form.title} onChange={handleChange} required />
+                  </div>
+                  <div>
+                    <Label htmlFor="category">Category</Label>
+                    <Input id="category" name="category" value={form.category} onChange={handleChange} />
+                  </div>
+                  <div>
+                    <Label htmlFor="progress">Progress</Label>
+                    <Slider min={0} max={100} step={1} defaultValue={[form.progress]} value={[form.progress]} onValueChange={handleProgressChange} />
+                    <div className="text-xs text-muted-foreground mt-1">{form.progress}%</div>
+                  </div>
+                  <DialogFooter>
+                    <Button variant="outline" type="button" onClick={() => setIsDialogOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button type="submit">{editingId ? "Update" : "Add"}</Button>
+                  </DialogFooter>
+                </form>
+              </DialogContent>
+            </Dialog>
+            {goals.length === 0 ? (
+              <Card className="mt-8">
+                <CardContent className="py-12 text-center text-muted-foreground">
+                  <div className="mb-4 flex justify-center">
+                    <Target className="h-8 w-8 text-primary" />
+                  </div>
+                  <p>No health goals yet.</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {goals.map((goal) => (
+                  <Card key={goal.id} className="relative border dark:border-blue-700/40 bg-gradient-to-br from-purple-50 to-blue-100 dark:from-purple-950/40 dark:to-blue-900/40 shadow-sm">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="flex gap-2 items-center">{goal.title}</CardTitle>
+                      <CardDescription>
+                        {goal.category && <span>{goal.category}</span>}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="mb-2">
+                        <div className="w-full h-2 rounded-full bg-muted overflow-hidden">
+                          <div
+                            className={`h-full rounded-full transition-all duration-500 ${progressColor(goal.progress)}`}
+                            style={{ width: `${goal.progress}%` }}
+                          />
+                        </div>
+                        <div className="flex justify-between text-xs mt-1 text-muted-foreground">
+                          <span>
+                            {goal.progress < 100
+                              ? `${goal.progress}%`
+                              : (
+                                <span className="inline-flex items-center gap-1 text-green-500">
+                                  Completed <Check className="w-3 h-3" />
+                                </span>
+                              )}
+                          </span>
+                        </div>
+                      </div>
+                    </CardContent>
+                    <CardFooter className="flex gap-2">
+                      <Button variant="ghost" size="icon" onClick={() => handleEdit(goal)}>
+                        <Edit2 className="w-4 h-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDelete(goal.id)}>
+                        <Trash className="w-4 h-4" />
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </section>
+        </TabsContent>
+
+        <TabsContent value="premium">
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold mb-2 text-gradient bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-500">Personalized Goal Management</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 mb-8">
+              <PremiumFeatureCard 
+                icon={<Award className="w-5 h-5 text-purple-600" />} 
+                title="Personalized Templates" 
+                description="Pre-built goal frameworks for exercise, nutrition, sleep, mental wellness, medication adherence, and social health."
+              />
+              <PremiumFeatureCard 
+                icon={<Brain className="w-5 h-5 text-blue-600" />} 
+                title="AI-Powered Suggestions" 
+                description="Intelligent goal recommendations based on user health patterns and profiles."
+              />
+              <PremiumFeatureCard 
+                icon={<Activity className="w-5 h-5 text-green-600" />} 
+                title="Progressive Difficulty" 
+                description="Tiered challenge levels with adaptive adjustments based on performance."
+              />
+              <PremiumFeatureCard 
+                icon={<Target className="w-5 h-5 text-red-600" />} 
+                title="SMART Goal Framework" 
+                description="Guided creation process ensuring goals are Specific, Measurable, Achievable, Relevant, and Time-bound."
+              />
+            </div>
+
+            <h2 className="text-2xl font-bold mb-2 text-gradient bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-teal-500">Advanced Progress Visualization</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 mb-8">
+              <PremiumFeatureCard 
+                icon={<Activity className="w-5 h-5 text-blue-600" />} 
+                title="Interactive Dashboards" 
+                description="Dynamic visual representations of progress across multiple goals."
+              />
+              <PremiumFeatureCard 
+                icon={<Activity className="w-5 h-5 text-blue-600" />} 
+                title="Trend Analysis" 
+                description="Historical data visualization with pattern recognition."
+              />
+              <PremiumFeatureCard 
+                icon={<Award className="w-5 h-5 text-yellow-600" />} 
+                title="Milestone Celebration System" 
+                description="Animated achievements and digital badges for completed goals."
+              />
+              <PremiumFeatureCard 
+                icon={<Activity className="w-5 h-5 text-purple-600" />} 
+                title="Comparative Analytics" 
+                description="Side-by-side weekly and monthly performance metrics."
+              />
+            </div>
+
+            <h2 className="text-2xl font-bold mb-2 text-gradient bg-clip-text text-transparent bg-gradient-to-r from-teal-500 to-green-500">Behavioral Science Integration</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 mb-8">
+              <PremiumFeatureCard 
+                icon={<Brain className="w-5 h-5 text-teal-600" />} 
+                title="Habit Building Mechanics" 
+                description="Implementation intention prompts and obstacle planning."
+              />
+              <PremiumFeatureCard 
+                icon={<Target className="w-5 h-5 text-teal-600" />} 
+                title="Microgoal Architecture" 
+                description="Breaking larger goals into achievable daily actions."
+              />
+              <PremiumFeatureCard 
+                icon={<Heart className="w-5 h-5 text-pink-600" />} 
+                title="Identity-Based Framing" 
+                description="Connecting goals to personal values and self-perception."
+              />
+              <PremiumFeatureCard 
+                icon={<Award className="w-5 h-5 text-green-600" />} 
+                title="Positive Reinforcement System" 
+                description="Timed rewards and recognition for consistency."
+              />
+            </div>
+
+            <h2 className="text-2xl font-bold mb-2 text-gradient bg-clip-text text-transparent bg-gradient-to-r from-green-500 to-yellow-500">Holistic Health Connections</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 mb-8">
+              <PremiumFeatureCard 
+                icon={<Activity className="w-5 h-5 text-green-600" />} 
+                title="Symptom Correlation" 
+                description="Automatic tracking of how goal progress affects reported symptoms."
+              />
+              <PremiumFeatureCard 
+                icon={<Activity className="w-5 h-5 text-green-600" />} 
+                title="Medication Adherence Integration" 
+                description="Connected tracking between prescriptions and related health goals."
+              />
+              <PremiumFeatureCard 
+                icon={<Activity className="w-5 h-5 text-green-600" />} 
+                title="Sleep-Exercise-Nutrition Triangulation" 
+                description="Visualize relationships between different health dimensions."
+              />
+              <PremiumFeatureCard 
+                icon={<Brain className="w-5 h-5 text-yellow-600" />} 
+                title="Contextual Health Education" 
+                description="Just-in-time learning resources relevant to active goals."
+              />
+            </div>
+
+            <h2 className="text-2xl font-bold mb-2 text-gradient bg-clip-text text-transparent bg-gradient-to-r from-orange-500 to-red-500">Engagement & Accountability</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 mb-8">
+              <PremiumFeatureCard 
+                icon={<Activity className="w-5 h-5 text-orange-600" />} 
+                title="Customizable Reminder System" 
+                description="Multi-channel notifications with smart timing."
+              />
+              <PremiumFeatureCard 
+                icon={<Brain className="w-5 h-5 text-blue-600" />} 
+                title="Reflection Prompts" 
+                description="Guided questions for deeper goal engagement."
+              />
+              <PremiumFeatureCard 
+                icon={<Activity className="w-5 h-5 text-red-600" />} 
+                title="Streak Protection" 
+                description="Grace period mechanics and recovery pathways."
+              />
+              <PremiumFeatureCard 
+                icon={<Activity className="w-5 h-5 text-purple-600" />} 
+                title="Progress Sharing" 
+                description="Generate shareable summaries for healthcare providers."
+              />
+            </div>
+
+            <h2 className="text-2xl font-bold mb-2 text-gradient bg-clip-text text-transparent bg-gradient-to-r from-red-500 to-purple-500">Visual Experience</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
+              <PremiumFeatureCard 
+                icon={<Calendar className="w-5 h-5 text-blue-600" />} 
+                title="Activity Heat Maps" 
+                description="Calendar-based intensity visualization."
+              />
+              <PremiumFeatureCard 
+                icon={<Activity className="w-5 h-5 text-green-600" />} 
+                title="Progress Wheels" 
+                description="Intuitive circular progress indicators with percentage completion."
+              />
+              <PremiumFeatureCard 
+                icon={<Activity className="w-5 h-5 text-purple-600" />} 
+                title="Journey Timelines" 
+                description="Visual storytelling of the user's goal history."
+              />
+              <PremiumFeatureCard 
+                icon={<Award className="w-5 h-5 text-yellow-600" />} 
+                title="Celebration Animations" 
+                description="Tasteful micro-interactions that reward achievement."
+              />
+            </div>
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
