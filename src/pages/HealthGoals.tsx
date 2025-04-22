@@ -1,6 +1,7 @@
+
 import { useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { Target, Plus, Percent, Activity } from "lucide-react";
+import { Target, Plus, Dumbbell, Activity, Droplet, Gauge, Weight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -44,17 +45,10 @@ export default function HealthGoals() {
 
   const [showedMotivation, setShowedMotivation] = useState(false);
 
-  const [editingTargets, setEditingTargets] = useState({
-    steps: false,
-    water: false,
-    calories: false,
-    protein: false,
-  });
-
   useEffect(() => {
     const setval = localStorage.getItem(SETTINGS_KEY);
     if (setval) setSettings(JSON.parse(setval));
-    setSteps(Number(localStorage.getItem(getTodayKey("steps")) || settings.stepsTarget));
+    setSteps(Number(localStorage.getItem(getTodayKey("steps")) || 0));
     setWater(Number(localStorage.getItem(getTodayKey("water")) || 0));
     setCalories(Number(localStorage.getItem(getTodayKey("calories")) || 0));
     setProtein(Number(localStorage.getItem(getTodayKey("protein")) || 0));
@@ -104,7 +98,7 @@ export default function HealthGoals() {
         setShowedMotivation(true);
       }
     }
-  }, [todayGoals, toast]);
+  }, [todayGoals, toast, showedMotivation]);
 
   const openAddDialog = () => {
     setEditingGoal(null);
@@ -171,20 +165,23 @@ export default function HealthGoals() {
   const progressPercent = todayGoals.length === 0 ? 0 : Math.round((numDone / todayGoals.length) * 100);
 
   return (
-    <div className="container mx-auto py-5 px-2 md:px-4 max-w-4xl">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-5">
-        <h1 className="text-3xl font-bold flex items-center gap-2">
-          <Target className="w-7 h-7 text-primary" /> Health Goals
-        </h1>
-        <div className="flex gap-2 w-full md:w-auto justify-end">
-          <Button className="gap-2 w-full md:w-auto" onClick={openAddDialog}>
-            <Plus className="w-4 h-4" /> Add Goal
-          </Button>
+    <div className="container mx-auto py-5 px-2 md:px-4 max-w-5xl">
+      <div className="bg-gradient-to-r from-purple-100 to-indigo-100 dark:from-purple-900/40 dark:to-indigo-900/40 rounded-xl p-6 mb-8 shadow-md">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-2">
+          <h1 className="text-3xl font-bold flex items-center gap-2 text-indigo-900 dark:text-indigo-100">
+            <Dumbbell className="w-8 h-8 text-indigo-600 dark:text-indigo-300" /> Health Goals
+          </h1>
+          <div className="flex gap-2 w-full md:w-auto justify-end">
+            <Button className="gap-2 w-full md:w-auto bg-indigo-600 hover:bg-indigo-700" onClick={openAddDialog}>
+              <Plus className="w-4 h-4" /> Add Goal
+            </Button>
+          </div>
         </div>
-      </div>
-
-      <div className="flex justify-center my-4">
-        <ProgressWheel percent={progressPercent} />
+        <p className="text-indigo-700 dark:text-indigo-300 mb-3">Track your daily health metrics and personal goals in one place</p>
+        
+        <div className="flex justify-center my-4">
+          <ProgressWheel percent={progressPercent} />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
@@ -225,24 +222,34 @@ export default function HealthGoals() {
       </div>
 
       <section className="mb-8">
-        <h2 className="font-semibold text-lg mb-4 text-blue-900 dark:text-blue-300">Today's Goals</h2>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="font-semibold text-xl text-indigo-900 dark:text-indigo-300 flex items-center gap-2">
+            <Target className="w-5 h-5 text-indigo-600" /> Today's Goals
+          </h2>
+          <span className="text-sm text-muted-foreground">{today}</span>
+        </div>
+        
         <GoalFormDialog
           open={isDialogOpen}
           setOpen={setIsDialogOpen}
           editingGoal={editingGoal}
           onSave={handleSaveGoal}
         />
+        
         {todayGoals.length === 0 ? (
-          <Card className="mt-8">
+          <Card className="mt-8 border-dashed border-2 border-muted-foreground/30">
             <CardContent className="py-12 text-center text-muted-foreground">
               <div className="mb-4 flex justify-center">
-                <Target className="h-8 w-8 text-primary" />
+                <Target className="h-12 w-12 text-muted-foreground/50" />
               </div>
-              <p>No health goals for today.</p>
+              <p className="mb-2">No health goals for today</p>
+              <Button variant="outline" onClick={openAddDialog} className="mt-2">
+                <Plus className="w-4 h-4 mr-1" /> Add Your First Goal
+              </Button>
             </CardContent>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {todayGoals.map((goal) => (
               <GoalCard
                 key={goal.id}
