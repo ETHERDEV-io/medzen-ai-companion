@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,7 +8,6 @@ import { ThemeProvider } from "@/components/theme-provider";
 import MainLayout from "@/components/layout/main-layout";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
-
 import Dashboard from "./pages/Dashboard";
 import Medications from "./pages/Medications";
 import HealthGoals from "./pages/HealthGoals";
@@ -16,6 +16,7 @@ import AIAssistant from "./pages/AIAssistant";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import Legal from "./pages/Legal";
+import HowToUse from "./pages/HowToUse";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +32,7 @@ const App = () => (
             <Route path="/dashboard" element={<MainLayout><Dashboard /></MainLayout>} />
             <Route path="/medications" element={<MainLayout><Medications /></MainLayout>} />
             <Route path="/health-goals" element={<MainLayout><HealthGoals /></MainLayout>} />
+            <Route path="/how-to-use" element={<MainLayout><HowToUse /></MainLayout>} />
             <Route path="/symptom-checker" element={<MainLayout><SymptomChecker /></MainLayout>} />
             <Route path="/ai-assistant" element={<MainLayout><AIAssistant /></MainLayout>} />
             <Route path="/privacy" element={<MainLayout><Privacy /></MainLayout>} />
