@@ -1,5 +1,5 @@
 
-import { Edit2, Trash, Check, gauge } from "lucide-react";
+import { Edit2, Trash, Check, Gauge } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Goal } from "@/types/health-goals";
@@ -51,7 +51,7 @@ export default function GoalCard({ goal, onEdit, onDelete }: GoalCardProps) {
                 )}
             </span>
             <span>
-              <gauge className="w-4 h-4 inline" /> {goal.caloriesBurnedToday ?? 0} / {goal.caloriesBurnTarget ?? 0} kcal
+              <Gauge className="w-4 h-4 inline" /> {goal.caloriesBurnedToday ?? 0} / {goal.caloriesBurnTarget ?? 0} kcal
             </span>
           </div>
         </div>
@@ -67,4 +67,3 @@ export default function GoalCard({ goal, onEdit, onDelete }: GoalCardProps) {
     </Card>
   );
 }
-

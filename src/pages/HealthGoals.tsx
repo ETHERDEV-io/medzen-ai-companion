@@ -1,7 +1,6 @@
-
 import { useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { Target, Plus, percent, activity } from "lucide-react";
+import { Target, Plus, Percent, Activity } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -27,7 +26,6 @@ function getTodayKey(base: string) {
 export default function HealthGoals() {
   const { toast } = useToast();
 
-  // Settings (steps/water/calories/protein targets)
   const [settings, setSettings] = useState({
     stepsTarget: 10000,
     waterTarget: 8,
@@ -35,36 +33,28 @@ export default function HealthGoals() {
     proteinTarget: 120,
   });
 
-  // Trackers (today's)
   const [steps, setSteps] = useState(0);
   const [water, setWater] = useState(0);
   const [calories, setCalories] = useState(0);
   const [protein, setProtein] = useState(0);
 
-  // Goals
   const [goals, setGoals] = useState<Goal[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
 
-  // Congratulate / motivate state
   const [showedMotivation, setShowedMotivation] = useState(false);
 
-  // -- LOAD --
   useEffect(() => {
-    // Settings
     const setval = localStorage.getItem(SETTINGS_KEY);
     if (setval) setSettings(JSON.parse(setval));
-    // Trackers
     setSteps(Number(localStorage.getItem(getTodayKey("steps")) || settings.stepsTarget));
     setWater(Number(localStorage.getItem(getTodayKey("water")) || 0));
     setCalories(Number(localStorage.getItem(getTodayKey("calories")) || 0));
     setProtein(Number(localStorage.getItem(getTodayKey("protein")) || 0));
-    // Goals (all user goals)
     const raw = localStorage.getItem(GOALS_KEY);
     setGoals(raw ? JSON.parse(raw) : []);
   }, []);
 
-  // Persist
   useEffect(() => { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); }, [settings]);
   useEffect(() => { localStorage.setItem(getTodayKey("steps"), String(steps)); }, [steps]);
   useEffect(() => { localStorage.setItem(getTodayKey("water"), String(water)); }, [water]);
@@ -72,7 +62,6 @@ export default function HealthGoals() {
   useEffect(() => { localStorage.setItem(getTodayKey("protein"), String(protein)); }, [protein]);
   useEffect(() => { localStorage.setItem(GOALS_KEY, JSON.stringify(goals)); }, [goals]);
 
-  // --- Goal Scheduling (filter goals for today) ---
   const today = getToday();
   const todayGoals = goals.filter(g => {
     if (!g.startDate || !g.endDate) return false;
@@ -81,11 +70,8 @@ export default function HealthGoals() {
     return afterStart && beforeEnd && (g.everyDay || g.startDate === today);
   });
 
-  // -- Toast for completed/missed at 23:59, or after progress update --
   useEffect(() => {
-    // Show only once per day
     if (showedMotivation) return;
-    // When it's almost midnight or all goals updated
     const now = new Date();
     if (now.getHours() >= 23 && now.getMinutes() >= 55) {
       const allDone = todayGoals.every(g => g.completedToday);
@@ -99,16 +85,13 @@ export default function HealthGoals() {
     }
   }, [showedMotivation, todayGoals, toast]);
 
-  // --- Goal Completion: Congratulate or motivate at moment of completion ---
   useEffect(() => {
     todayGoals.forEach(goal => {
       if (goal.completedToday && goal.progress === 100) {
         toast({ title: "Goal Completed!", description: `Well done on: "${goal.title}"` });
       }
     });
-    // Motivate on incomplete
     if (todayGoals.some(g => !g.completedToday && g.progress < 100)) {
-      // Only show once
       if (!showedMotivation) {
         toast({ title: "Stay motivated!", description: "Come back and finish your remaining goals for today." });
         setShowedMotivation(true);
@@ -116,16 +99,15 @@ export default function HealthGoals() {
     }
   }, [todayGoals, toast]);
 
-  // --- Add/Edit Goal Dialog ---
   const openAddDialog = () => {
     setEditingGoal(null);
     setIsDialogOpen(true);
   };
+
   const handleSaveGoal = (goalData: Omit<Goal, "id" | "completedToday" | "progress">) => {
     const defaultCalc = goalData.caloriesBurnTarget && goalData.caloriesBurnedToday
       ? Math.round((goalData.caloriesBurnedToday / goalData.caloriesBurnTarget) * 100)
       : 0;
-    // Each day, completedToday resets
     const todayVal = today >= goalData.startDate && today <= goalData.endDate;
     const isCompleted = defaultCalc >= 100 && todayVal;
     if (editingGoal) {
@@ -157,17 +139,17 @@ export default function HealthGoals() {
     setEditingGoal(null);
     setIsDialogOpen(false);
   };
+
   const handleEditGoal = (goal: Goal) => { setEditingGoal(goal); setIsDialogOpen(true); };
+
   const handleDeleteGoal = (id: string) => {
     setGoals((prev) => prev.filter(g => g.id !== id));
     toast({ title: "Deleted", description: "Goal deleted." });
   };
 
-  // --- Progress Wheel for today ---
   const numDone = todayGoals.filter(g => g.progress >= 100).length;
   const progressPercent = todayGoals.length === 0 ? 0 : Math.round((numDone / todayGoals.length) * 100);
 
-  // --- Layout ---
   return (
     <div className="container mx-auto py-5 px-2 md:px-4 max-w-4xl">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-5">
@@ -181,12 +163,10 @@ export default function HealthGoals() {
         </div>
       </div>
 
-      {/* Progress Wheel */}
       <div className="flex justify-center my-4">
         <ProgressWheel percent={progressPercent} />
       </div>
 
-      {/* Trackers Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
         <TrackerCard 
           type="steps"
@@ -219,7 +199,7 @@ export default function HealthGoals() {
           onIncrement={amt => setProtein(prev => Math.max(0, prev + amt))}
         />
       </div>
-      {/* Health Goals Section */}
+
       <section className="mb-8">
         <h2 className="font-semibold text-lg mb-4 text-blue-900 dark:text-blue-300">Today's Goals</h2>
         <GoalFormDialog 

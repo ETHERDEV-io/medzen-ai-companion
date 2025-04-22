@@ -1,5 +1,5 @@
 
-import { percent } from "lucide-react";
+import { Percent } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 
 interface ProgressWheelProps {
@@ -41,7 +41,7 @@ export default function ProgressWheel({ percent }: ProgressWheelProps) {
       <div className="flex items-center gap-2 text-lg font-semibold">
         {percent}%
         <span className="text-primary">
-          <percent className="w-4 h-4" />
+          <Percent className="w-4 h-4" />
         </span>
       </div>
       <span className="text-xs text-muted-foreground">Goals Complete</span>
