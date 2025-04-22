@@ -1,6 +1,5 @@
 
-import { useState } from "react";
-import { Edit2, Trash, Check } from "lucide-react";
+import { Edit2, Trash, Check, gauge } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Goal } from "@/types/health-goals";
@@ -13,7 +12,7 @@ interface GoalCardProps {
 
 export default function GoalCard({ goal, onEdit, onDelete }: GoalCardProps) {
   function progressColor(progress: number) {
-    if (progress >= 90) return "bg-green-500";
+    if (progress >= 100) return "bg-green-500";
     if (progress >= 50) return "bg-yellow-500";
     return "bg-blue-600";
   }
@@ -22,9 +21,16 @@ export default function GoalCard({ goal, onEdit, onDelete }: GoalCardProps) {
     <Card className="relative border dark:border-blue-700/40 bg-gradient-to-br from-purple-50 to-blue-100 dark:from-purple-950/40 dark:to-blue-900/40 shadow-sm">
       <CardHeader className="pb-2">
         <CardTitle className="flex gap-2 items-center">{goal.title}</CardTitle>
-        <CardDescription>
-          {goal.category && <span>{goal.category}</span>}
-        </CardDescription>
+        {goal.exercise && (
+          <CardDescription>
+            Exercise: <span className="font-semibold">{goal.exercise}</span>
+          </CardDescription>
+        )}
+        {!goal.exercise && (
+          <CardDescription>
+            Calories: {goal.caloriesBurnTarget} kcal
+          </CardDescription>
+        )}
       </CardHeader>
       <CardContent>
         <div className="mb-2">
@@ -44,6 +50,9 @@ export default function GoalCard({ goal, onEdit, onDelete }: GoalCardProps) {
                   </span>
                 )}
             </span>
+            <span>
+              <gauge className="w-4 h-4 inline" /> {goal.caloriesBurnedToday ?? 0} / {goal.caloriesBurnTarget ?? 0} kcal
+            </span>
           </div>
         </div>
       </CardContent>
@@ -58,3 +67,4 @@ export default function GoalCard({ goal, onEdit, onDelete }: GoalCardProps) {
     </Card>
   );
 }
+

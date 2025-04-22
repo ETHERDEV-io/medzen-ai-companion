@@ -1,255 +1,176 @@
 
 import { useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { Target, Plus, Award, Brain, Activity, Heart, Calendar, Droplet } from "lucide-react";
+import { Target, Plus, percent, activity } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Goal, PremiumFeature } from "@/types/health-goals";
+import { Goal } from "@/types/health-goals";
 import GoalCard from "@/components/health-goals/GoalCard";
 import TrackerCard from "@/components/health-goals/TrackerCard";
-import FeatureCard from "@/components/health-goals/FeatureCard";
+import { ExtraTrackerCard } from "@/components/health-goals/ExtraTrackers";
+import ProgressWheel from "@/components/health-goals/ProgressWheel";
 import GoalFormDialog from "@/components/health-goals/GoalFormDialog";
 
-// --- Constants ---
-const GOALS_KEY = "medzen-health-goals";
-const STEP_KEY = "medzen-steps";
-const WATER_KEY = "medzen-water";
-const STEP_DAILY_TARGET = 10000;
-const WATER_DAILY_TARGET = 8;
-const ACTIVE_FEATURES_KEY = "medzen-active-features";
+const GOALS_KEY = "medzen-health-goals-v2";
+const DAILY_KEY_PREFIX = "medzen-healthgoals-day";
+const SETTINGS_KEY = "medzen-program-settings";
 
-// --- Utility ---
-function getTodayKey(key: string) {
-  const today = new Date().toISOString().slice(0, 10);
-  return `${key}:${today}`;
+function getToday() {
+  return new Date().toISOString().slice(0, 10);
 }
 
-const premiumFeatures: PremiumFeature[] = [
-  {
-    id: "templates",
-    title: "Personalized Templates",
-    description: "Pre-built goal frameworks for exercise, nutrition, sleep, mental wellness, and more.",
-    icon: Award,
-    category: "goal-management",
-  },
-  {
-    id: "suggestions",
-    title: "AI-Powered Suggestions",
-    description: "Intelligent goal recommendations based on your health patterns.",
-    icon: Brain,
-    category: "goal-management",
-  },
-  {
-    id: "difficulty",
-    title: "Progressive Difficulty",
-    description: "Tiered challenge levels with adaptive adjustments based on performance.",
-    icon: Activity,
-    category: "goal-management",
-  },
-  {
-    id: "smart",
-    title: "SMART Goal Framework",
-    description: "Create goals that are Specific, Measurable, Achievable, Relevant, and Time-bound.",
-    icon: Target,
-    category: "goal-management",
-  },
-  {
-    id: "dashboard",
-    title: "Interactive Dashboards",
-    description: "Dynamic visual representations of progress across multiple goals.",
-    icon: Activity, 
-    category: "visualization",
-  },
-  {
-    id: "trends",
-    title: "Trend Analysis",
-    description: "Historical data visualization with pattern recognition.",
-    icon: Activity,
-    category: "visualization",
-  },
-  {
-    id: "milestones",
-    title: "Milestone Celebrations",
-    description: "Animated achievements and digital badges for completed goals.",
-    icon: Award,
-    category: "visualization",
-  },
-  {
-    id: "habit",
-    title: "Habit Building Mechanics",
-    description: "Implementation intention prompts and obstacle planning.",
-    icon: Brain,
-    category: "behavioral",
-  },
-  {
-    id: "microgoals",
-    title: "Microgoal Architecture",
-    description: "Breaking larger goals into achievable daily actions.",
-    icon: Target,
-    category: "behavioral",
-  },
-  {
-    id: "identity",
-    title: "Identity-Based Framing",
-    description: "Connecting goals to personal values and self-perception.",
-    icon: Heart,
-    category: "behavioral",
-  },
-  {
-    id: "heatmaps",
-    title: "Activity Heat Maps",
-    description: "Calendar-based intensity visualization.",
-    icon: Calendar,
-    category: "visual",
-  },
-  {
-    id: "progress-wheels",
-    title: "Progress Wheels",
-    description: "Intuitive circular progress indicators with percentage completion.",
-    icon: Activity,
-    category: "visual",
-  },
-];
+function getTodayKey(base: string) {
+  return `${base}:${getToday()}`;
+}
 
-// --- Main Component ---
 export default function HealthGoals() {
   const { toast } = useToast();
 
-  // Health Goals
+  // Settings (steps/water/calories/protein targets)
+  const [settings, setSettings] = useState({
+    stepsTarget: 10000,
+    waterTarget: 8,
+    caloriesTarget: 2000,
+    proteinTarget: 120,
+  });
+
+  // Trackers (today's)
+  const [steps, setSteps] = useState(0);
+  const [water, setWater] = useState(0);
+  const [calories, setCalories] = useState(0);
+  const [protein, setProtein] = useState(0);
+
+  // Goals
   const [goals, setGoals] = useState<Goal[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
 
-  // Trackers
-  const [steps, setSteps] = useState<number>(0);
-  const [water, setWater] = useState<number>(0);
-  
-  // Features
-  const [activeFeatures, setActiveFeatures] = useState<string[]>([]);
+  // Congratulate / motivate state
+  const [showedMotivation, setShowedMotivation] = useState(false);
 
   // -- LOAD --
   useEffect(() => {
-    // Health goals
-    const stored = localStorage.getItem(GOALS_KEY);
-    if (stored) setGoals(JSON.parse(stored));
-    
-    // Steps
-    const stepsVal = Number(localStorage.getItem(getTodayKey(STEP_KEY)) || "0");
-    setSteps(stepsVal);
-    
-    // Water
-    const waterVal = Number(localStorage.getItem(getTodayKey(WATER_KEY)) || "0");
-    setWater(waterVal);
-    
-    // Active features
-    const activeFeatsStored = localStorage.getItem(ACTIVE_FEATURES_KEY);
-    if (activeFeatsStored) {
-      setActiveFeatures(JSON.parse(activeFeatsStored));
-    } else {
-      // Set default active features
-      const defaults = ["templates", "dashboard", "habit", "heatmaps"];
-      setActiveFeatures(defaults);
-      localStorage.setItem(ACTIVE_FEATURES_KEY, JSON.stringify(defaults));
-    }
+    // Settings
+    const setval = localStorage.getItem(SETTINGS_KEY);
+    if (setval) setSettings(JSON.parse(setval));
+    // Trackers
+    setSteps(Number(localStorage.getItem(getTodayKey("steps")) || settings.stepsTarget));
+    setWater(Number(localStorage.getItem(getTodayKey("water")) || 0));
+    setCalories(Number(localStorage.getItem(getTodayKey("calories")) || 0));
+    setProtein(Number(localStorage.getItem(getTodayKey("protein")) || 0));
+    // Goals (all user goals)
+    const raw = localStorage.getItem(GOALS_KEY);
+    setGoals(raw ? JSON.parse(raw) : []);
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem(GOALS_KEY, JSON.stringify(goals));
-  }, [goals]);
+  // Persist
+  useEffect(() => { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); }, [settings]);
+  useEffect(() => { localStorage.setItem(getTodayKey("steps"), String(steps)); }, [steps]);
+  useEffect(() => { localStorage.setItem(getTodayKey("water"), String(water)); }, [water]);
+  useEffect(() => { localStorage.setItem(getTodayKey("calories"), String(calories)); }, [calories]);
+  useEffect(() => { localStorage.setItem(getTodayKey("protein"), String(protein)); }, [protein]);
+  useEffect(() => { localStorage.setItem(GOALS_KEY, JSON.stringify(goals)); }, [goals]);
 
-  useEffect(() => {
-    localStorage.setItem(getTodayKey(STEP_KEY), String(steps));
-  }, [steps]);
+  // --- Goal Scheduling (filter goals for today) ---
+  const today = getToday();
+  const todayGoals = goals.filter(g => {
+    if (!g.startDate || !g.endDate) return false;
+    const afterStart = today >= g.startDate;
+    const beforeEnd = today <= g.endDate;
+    return afterStart && beforeEnd && (g.everyDay || g.startDate === today);
+  });
 
+  // -- Toast for completed/missed at 23:59, or after progress update --
   useEffect(() => {
-    localStorage.setItem(getTodayKey(WATER_KEY), String(water));
-  }, [water]);
-  
-  useEffect(() => {
-    localStorage.setItem(ACTIVE_FEATURES_KEY, JSON.stringify(activeFeatures));
-  }, [activeFeatures]);
+    // Show only once per day
+    if (showedMotivation) return;
+    // When it's almost midnight or all goals updated
+    const now = new Date();
+    if (now.getHours() >= 23 && now.getMinutes() >= 55) {
+      const allDone = todayGoals.every(g => g.completedToday);
+      if (todayGoals.length === 0) return;
+      if (allDone) {
+        toast({ title: "Congratulations!", description: "You finished all your goals for today! 🎉" });
+      } else {
+        toast({ title: "Keep Going!", description: "Not every goal is complete yet. You can do it!" });
+      }
+      setShowedMotivation(true);
+    }
+  }, [showedMotivation, todayGoals, toast]);
 
-  // --- Goal Handlers ---
+  // --- Goal Completion: Congratulate or motivate at moment of completion ---
+  useEffect(() => {
+    todayGoals.forEach(goal => {
+      if (goal.completedToday && goal.progress === 100) {
+        toast({ title: "Goal Completed!", description: `Well done on: "${goal.title}"` });
+      }
+    });
+    // Motivate on incomplete
+    if (todayGoals.some(g => !g.completedToday && g.progress < 100)) {
+      // Only show once
+      if (!showedMotivation) {
+        toast({ title: "Stay motivated!", description: "Come back and finish your remaining goals for today." });
+        setShowedMotivation(true);
+      }
+    }
+  }, [todayGoals, toast]);
+
+  // --- Add/Edit Goal Dialog ---
   const openAddDialog = () => {
     setEditingGoal(null);
     setIsDialogOpen(true);
   };
-
-  const handleSaveGoal = (goalData: Omit<Goal, "id">) => {
+  const handleSaveGoal = (goalData: Omit<Goal, "id" | "completedToday" | "progress">) => {
+    const defaultCalc = goalData.caloriesBurnTarget && goalData.caloriesBurnedToday
+      ? Math.round((goalData.caloriesBurnedToday / goalData.caloriesBurnTarget) * 100)
+      : 0;
+    // Each day, completedToday resets
+    const todayVal = today >= goalData.startDate && today <= goalData.endDate;
+    const isCompleted = defaultCalc >= 100 && todayVal;
     if (editingGoal) {
-      setGoals((prev) => prev.map((g) => (g.id === editingGoal.id ? { ...g, ...goalData } : g)));
+      setGoals((prev) =>
+        prev.map((g) =>
+          g.id === editingGoal.id
+            ? {
+                ...g,
+                ...goalData,
+                progress: defaultCalc,
+                completedToday: isCompleted,
+              }
+            : g
+        )
+      );
       toast({ title: "Updated", description: "Goal updated." });
     } else {
-      setGoals((prev) => [...prev, { ...goalData, id: uuidv4() }]);
+      setGoals((prev) => [
+        ...prev,
+        {
+          ...goalData,
+          id: uuidv4(),
+          completedToday: isCompleted,
+          progress: defaultCalc,
+        },
+      ]);
       toast({ title: "Added", description: "Goal added." });
     }
     setEditingGoal(null);
+    setIsDialogOpen(false);
   };
-
-  const handleEdit = (goal: Goal) => {
-    setEditingGoal(goal);
-    setIsDialogOpen(true);
-  };
-
-  const handleDelete = (id: string) => {
+  const handleEditGoal = (goal: Goal) => { setEditingGoal(goal); setIsDialogOpen(true); };
+  const handleDeleteGoal = (id: string) => {
     setGoals((prev) => prev.filter(g => g.id !== id));
     toast({ title: "Deleted", description: "Goal deleted." });
   };
 
-  // --- Track Handlers ---
-  const handleStepChange = (value: number) => {
-    setSteps(value);
-  };
-
-  const handleFeatureToggle = (featureId: string) => {
-    setActiveFeatures(prev => {
-      if (prev.includes(featureId)) {
-        return prev.filter(id => id !== featureId);
-      } else {
-        return [...prev, featureId];
-      }
-    });
-    
-    toast({ 
-      title: activeFeatures.includes(featureId) ? "Feature Disabled" : "Feature Enabled", 
-      description: activeFeatures.includes(featureId) 
-        ? "The feature has been turned off." 
-        : "The feature has been activated!" 
-    });
-  };
-
-  // --- Render Helpers ---
-  const renderFeaturesByCategory = (category: string) => {
-    const categoryFeatures = premiumFeatures.filter(f => f.category === category);
-    
-    return (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-        {categoryFeatures.map(feature => (
-          <div key={feature.id} className="relative" onClick={() => handleFeatureToggle(feature.id)}>
-            <FeatureCard
-              icon={<feature.icon className="w-5 h-5 text-primary" />}
-              title={feature.title}
-              description={feature.description}
-              isActive={activeFeatures.includes(feature.id)}
-            />
-            <Button 
-              variant={activeFeatures.includes(feature.id) ? "default" : "outline"}
-              size="sm" 
-              className="absolute top-3 right-3"
-            >
-              {activeFeatures.includes(feature.id) ? "Active" : "Enable"}
-            </Button>
-          </div>
-        ))}
-      </div>
-    );
-  };
+  // --- Progress Wheel for today ---
+  const numDone = todayGoals.filter(g => g.progress >= 100).length;
+  const progressPercent = todayGoals.length === 0 ? 0 : Math.round((numDone / todayGoals.length) * 100);
 
   // --- Layout ---
   return (
-    <div className="container mx-auto py-6 px-2 md:px-4">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6">
+    <div className="container mx-auto py-5 px-2 md:px-4 max-w-4xl">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-5">
         <h1 className="text-3xl font-bold flex items-center gap-2">
           <Target className="w-7 h-7 text-primary" /> Health Goals
         </h1>
@@ -260,84 +181,74 @@ export default function HealthGoals() {
         </div>
       </div>
 
+      {/* Progress Wheel */}
+      <div className="flex justify-center my-4">
+        <ProgressWheel percent={progressPercent} />
+      </div>
+
       {/* Trackers Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
         <TrackerCard 
           type="steps"
           value={steps}
-          target={STEP_DAILY_TARGET}
-          onValueChange={handleStepChange}
-          onIncrement={(amt) => setSteps(prev => Math.max(0, Math.min(STEP_DAILY_TARGET * 2, prev + amt)))}
+          target={settings.stepsTarget}
+          onValueChange={setSteps}
+          onIncrement={amt => setSteps(prev => Math.max(0, prev + amt))}
         />
-        
         <TrackerCard 
           type="water"
           value={water}
-          target={WATER_DAILY_TARGET}
+          target={settings.waterTarget}
           onValueChange={setWater}
-          onIncrement={(amt) => setWater(prev => Math.max(0, Math.min(WATER_DAILY_TARGET * 2, prev + amt)))}
+          onIncrement={amt => setWater(prev => Math.max(0, prev + amt))}
         />
       </div>
-
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+        <ExtraTrackerCard 
+          type="calories"
+          value={calories}
+          target={settings.caloriesTarget}
+          onValueChange={setCalories}
+          onIncrement={amt => setCalories(prev => Math.max(0, prev + amt))}
+        />
+        <ExtraTrackerCard 
+          type="protein"
+          value={protein}
+          target={settings.proteinTarget}
+          onValueChange={setProtein}
+          onIncrement={amt => setProtein(prev => Math.max(0, prev + amt))}
+        />
+      </div>
       {/* Health Goals Section */}
       <section className="mb-8">
-        <h2 className="font-semibold text-lg mb-4 text-blue-900 dark:text-blue-300">Personal Goals</h2>
-        
+        <h2 className="font-semibold text-lg mb-4 text-blue-900 dark:text-blue-300">Today's Goals</h2>
         <GoalFormDialog 
           open={isDialogOpen} 
           setOpen={setIsDialogOpen} 
-          editingGoal={editingGoal} 
-          onSave={handleSaveGoal} 
+          editingGoal={editingGoal}
+          onSave={handleSaveGoal}
         />
-        
-        {goals.length === 0 ? (
+        {todayGoals.length === 0 ? (
           <Card className="mt-8">
             <CardContent className="py-12 text-center text-muted-foreground">
               <div className="mb-4 flex justify-center">
                 <Target className="h-8 w-8 text-primary" />
               </div>
-              <p>No health goals yet.</p>
+              <p>No health goals for today.</p>
             </CardContent>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {goals.map((goal) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {todayGoals.map((goal) => (
               <GoalCard 
-                key={goal.id} 
-                goal={goal} 
-                onEdit={handleEdit} 
-                onDelete={handleDelete} 
+                key={goal.id}
+                goal={goal}
+                onEdit={handleEditGoal}
+                onDelete={handleDeleteGoal}
               />
             ))}
           </div>
         )}
-      </section>
-
-      {/* Premium Features Section */}
-      <section className="mb-8">
-        <h2 className="text-2xl font-bold mb-6 text-gradient bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-500">
-          Enhanced Features
-        </h2>
-        
-        <div className="mb-8">
-          <h3 className="text-xl font-semibold mb-4 text-blue-900 dark:text-blue-300">Goal Management</h3>
-          {renderFeaturesByCategory("goal-management")}
-        </div>
-        
-        <div className="mb-8">
-          <h3 className="text-xl font-semibold mb-4 text-blue-900 dark:text-blue-300">Progress Visualization</h3>
-          {renderFeaturesByCategory("visualization")}
-        </div>
-        
-        <div className="mb-8">
-          <h3 className="text-xl font-semibold mb-4 text-blue-900 dark:text-blue-300">Behavioral Science</h3>
-          {renderFeaturesByCategory("behavioral")}
-        </div>
-        
-        <div className="mb-8">
-          <h3 className="text-xl font-semibold mb-4 text-blue-900 dark:text-blue-300">Visual Experience</h3>
-          {renderFeaturesByCategory("visual")}
-        </div>
       </section>
     </div>
   );
