@@ -1,7 +1,6 @@
-
 import { useState, useRef, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { Bot, ChevronRight, FileText, Plus, Send, Trash2, Upload, X, Clipboard } from "lucide-react";
+import { Bot, ChevronRight, FileText, Plus, Send, Trash2, Upload, Clipboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -351,23 +350,14 @@ const AIAssistant = () => {
                     key={msg.id}
                     className={cn(
                       "flex items-start gap-3 max-w-3xl",
-                      msg.role === "user" ? "ml-auto" : "mr-auto"
+                      msg.role === "user" ? "ml-auto justify-end" : "mr-auto"
                     )}
                   >
-                    <div
-                      className={cn(
-                        "flex-shrink-0 rounded-full w-8 h-8 flex items-center justify-center",
-                        msg.role === "user"
-                          ? "bg-primary/20 text-primary order-2"
-                          : "bg-accent/20 text-accent"
-                      )}
-                    >
-                      {msg.role === "user" ? (
-                        <div className="w-4 h-4 rounded-full bg-current opacity-80" />
-                      ) : (
+                    {msg.role !== "user" && (
+                      <div className="flex-shrink-0 rounded-full w-8 h-8 bg-accent/20 text-accent flex items-center justify-center">
                         <Bot className="h-4 w-4" />
-                      )}
-                    </div>
+                      </div>
+                    )}
                     <div
                       className={cn(
                         "rounded-xl px-4 py-3 text-sm space-y-2",
@@ -378,6 +368,11 @@ const AIAssistant = () => {
                     >
                       {formatMessageContent(msg.content)}
                     </div>
+                    {msg.role === "user" && (
+                      <div className="flex-shrink-0 rounded-full w-8 h-8 bg-primary/20 text-primary flex items-center justify-center">
+                        <div className="w-4 h-4 rounded-full bg-current opacity-80" />
+                      </div>
+                    )}
                   </div>
                 ))}
                 <div ref={messagesEndRef} />
