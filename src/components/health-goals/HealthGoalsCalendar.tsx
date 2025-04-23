@@ -101,12 +101,12 @@ export default function HealthGoalsCalendar({
 
   // Simplified calendar with clean styling
   return (
-    <Card className="bg-white rounded-xl shadow mb-8 p-4 md:p-5">
+    <Card className="bg-white rounded-xl shadow mb-8 p-4 md:p-5 dark:bg-card">
       <div className="flex flex-col md:flex-row gap-8 items-start">
         {/* Calendar */}
         <div>
           <div className="text-base font-semibold text-primary mb-2">Goal Calendar</div>
-          <div className="rounded-lg shadow bg-white p-1">
+          <div className="rounded-lg shadow bg-white dark:bg-card p-1">
             <Calendar
               mode="single"
               selected={calendarSelected}
@@ -128,7 +128,7 @@ export default function HealthGoalsCalendar({
           <div className="mt-2 text-xs text-muted-foreground px-1">Green = all goals completed</div>
         </div>
         {/* Progress for viewed day */}
-        <div className="flex-1 min-w-[240px] bg-white rounded-xl shadow-sm px-4 py-3 border">
+        <div className="flex-1 min-w-[240px] bg-white rounded-xl shadow-sm px-4 py-3 border dark:bg-card dark:border-gray-700">
           <div className="font-bold mb-1 text-sm">
             {(calendarSelected ? calendarSelected.toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" }) : "Today") + "'s Goal Progress"}
           </div>
@@ -142,7 +142,7 @@ export default function HealthGoalsCalendar({
                   <span className={`w-2 h-2 rounded-full ${completed ? "bg-green-400" : "bg-gray-300"} inline-block`} />
                   <span className="font-medium">{goal.label}</span>
                   <span className="ml-auto text-sm flex items-end gap-1">
-                    <span className={completed ? "text-green-700 font-bold" : "text-slate-400"}>
+                    <span className={completed ? "text-green-700 font-bold dark:text-green-400" : "text-slate-400"}>
                       {goal.done || 0} <span className="text-xs">{goal.unit}</span>
                     </span>
                     <span className="text-xs text-muted-foreground opacity-60">
