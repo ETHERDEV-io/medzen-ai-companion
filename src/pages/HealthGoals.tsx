@@ -23,19 +23,21 @@ function getInitialGoals(): GoalState {
   if (saved) return JSON.parse(saved);
   return Object.fromEntries(GOAL_PRESETS.map(g => [g.key, g.default])) as GoalState;
 }
-function getInitialExercises(): Array<{label: string, value: string, unit: string}> {
-  return JSON.parse(localStorage.getItem("modern-health-exercises") || "[]");
-}
 
 export default function HealthGoals() {
   const [goals, setGoals] = useState<GoalState>(getInitialGoals);
   const [customGoals, setCustomGoals] = useState<Array<{label:string,value:string,unit:string}>>(
     JSON.parse(localStorage.getItem("custom-health-goals") || "[]")
   );
-  const [exercises, setExercises] = useState<Array<{label:string,value:string,unit:string}>>(getInitialExercises());
+
+  // New: each goal's daily progress log. Format: { "2024-04-23": { walk: "1", sleep: "5", ... }, ... }
+  const [progressLog, setProgressLog] = useState<Record<string, Record<string, string>>>(
+    JSON.parse(localStorage.getItem("modern-health-progress-log") || "{}")
+  );
+
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  const [editData, setEditData] = useState<{goal: any, idx: number|null, type: "preset"|"custom"|"exercise"|null}>({goal: null, idx: null, type: null});
+  const [editData, setEditData] = useState<{goal: any, idx: number|null, type: "preset"|"custom"|null}>({goal: null, idx: null, type: null});
   const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   function handleValueChange(key: GoalKey, val: string) {
@@ -52,31 +54,26 @@ export default function HealthGoals() {
       return updated;
     });
   }
-  function handleExerciseChange(idx: number, value: string) {
-    setExercises(prev => {
-      const updated = prev.map((g, i) => (i === idx ? { ...g, value } : g));
-      localStorage.setItem("modern-health-exercises", JSON.stringify(updated));
-      return updated;
+
+  // New: Update per-goal progress for today (from the calendar or summary).
+  function handleDailyProgressChange(goalKey: string, value: string) {
+    const dateStr = new Date().toISOString().slice(0, 10);
+    setProgressLog(prev => {
+      const next = {...prev, [dateStr]: {...(prev[dateStr] || {}), [goalKey]: value}};
+      localStorage.setItem("modern-health-progress-log", JSON.stringify(next));
+      return next;
     });
   }
 
   function handleAddCustomGoal(goal: {label: string, value: string, unit: string, type?: string}) {
-    if (goal.type === "exercise") {
-      setExercises(prev => {
-        const next = [...prev, {label: goal.label, value: goal.value, unit: goal.unit}];
-        localStorage.setItem("modern-health-exercises", JSON.stringify(next));
-        return next;
-      });
-    } else {
-      setCustomGoals(prev => {
-        const next = [...prev, goal];
-        localStorage.setItem("custom-health-goals", JSON.stringify(next));
-        return next;
-      });
-    }
+    setCustomGoals(prev => {
+      const next = [...prev, goal];
+      localStorage.setItem("custom-health-goals", JSON.stringify(next));
+      return next;
+    });
     setDialogOpen(false);
   }
-  function handleEditGoal(goal: any, idx: number|null, type: "preset"|"custom"|"exercise") {
+  function handleEditGoal(goal: any, idx: number|null, type: "preset"|"custom") {
     setEditData({goal, idx, type});
     setEditDialogOpen(true);
   }
@@ -91,12 +88,6 @@ export default function HealthGoals() {
       setCustomGoals(prev => {
         const updated = prev.map((g, i) => (i === editData.idx ? {...g, ...newData} : g));
         localStorage.setItem("custom-health-goals", JSON.stringify(updated));
-        return updated;
-      });
-    } else if (editData.type === "exercise" && editData.idx !== null) {
-      setExercises(prev => {
-        const updated = prev.map((g, i) => (i === editData.idx ? {...g, ...newData} : g));
-        localStorage.setItem("modern-health-exercises", JSON.stringify(updated));
         return updated;
       });
     }
@@ -120,7 +111,7 @@ export default function HealthGoals() {
             Health Dashboard
           </h1>
           <p className="text-base text-white/80 mb-4 text-center font-normal">
-            Your daily goals, progress, and exercise tracker.<br />
+            Your daily goals, progress, and tracker.<br />
             All-in-one and always up-to-date!
           </p>
         </header>
@@ -130,7 +121,8 @@ export default function HealthGoals() {
           <HealthGoalsCalendar
             goals={goals}
             customGoals={customGoals}
-            exercises={exercises}
+            progressLog={progressLog}
+            onDailyProgressChange={handleDailyProgressChange}
           />
         </section>
 
@@ -174,6 +166,7 @@ export default function HealthGoals() {
               icon={goal.key as GoalKey}
               onValueChange={val => handleValueChange(goal.key as GoalKey, val)}
               onEdit={() => handleEditGoal(goal, null, "preset")}
+              useDialogEdit
             />
           ))}
           {customGoals.map((goal, idx) => (
@@ -185,34 +178,7 @@ export default function HealthGoals() {
               icon="walk"
               onValueChange={val => handleCustomGoalChange(idx, val)}
               onEdit={() => handleEditGoal(goal, idx, "custom")}
-            />
-          ))}
-        </section>
-
-        <div className="mt-10 mb-2 px-1 flex items-center justify-between">
-          <h2 className="font-bold text-xl text-white/90">Exercises</h2>
-          <Button
-            size="sm"
-            variant="outline"
-            className="gap-1"
-            onClick={() => setDialogOpen(true)}
-            type="button"
-          >
-            <Plus className="w-4 h-4" /> Add Exercise
-          </Button>
-        </div>
-        <section
-          className="grid w-full gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3"
-        >
-          {exercises.map((exercise, idx) => (
-            <HealthGoalCard
-              key={exercise.label + idx}
-              label={exercise.label}
-              value={exercise.value}
-              unit={exercise.unit}
-              icon="dumbbell"
-              onValueChange={val => handleExerciseChange(idx, val)}
-              onEdit={() => handleEditGoal(exercise, idx, "exercise")}
+              useDialogEdit
             />
           ))}
         </section>

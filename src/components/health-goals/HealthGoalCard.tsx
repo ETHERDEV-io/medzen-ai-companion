@@ -1,8 +1,6 @@
-
-import React, { useState } from "react";
+import React from "react";
 import { PersonStanding, Heart, Bed, Droplet, Dumbbell, Flame, Edit } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 
 const icons = {
   walk: PersonStanding,
@@ -34,6 +32,7 @@ interface HealthGoalCardProps {
   color?: string;
   onValueChange?: (v: string) => void;
   onEdit?: () => void;
+  useDialogEdit?: boolean;
 }
 
 export default function HealthGoalCard({
@@ -43,18 +42,11 @@ export default function HealthGoalCard({
   icon,
   color,
   onValueChange,
-  onEdit
+  onEdit,
+  useDialogEdit = false
 }: HealthGoalCardProps) {
-  const [editing, setEditing] = useState(false);
-  const [editVal, setEditVal] = useState(value);
   const Icon = icons[icon];
   const gradient = color || colors[icon];
-
-  function handleSave(e: React.FormEvent) {
-    e.preventDefault();
-    setEditing(false);
-    if (onValueChange) onValueChange(editVal);
-  }
 
   return (
     <Card
@@ -90,36 +82,8 @@ export default function HealthGoalCard({
         )}
       </div>
       <div className="text-2xl sm:text-3xl font-semibold flex items-end gap-2 min-h-[32px]">
-        {editing ? (
-          <form onSubmit={handleSave} className="flex items-end gap-1">
-            <Input
-              value={editVal}
-              onChange={e => setEditVal(e.target.value)}
-              className="w-16 text-lg font-bold bg-black/40 border-white/20 text-white px-2 py-1 h-8"
-              autoFocus
-              type="number"
-              min="0"
-              max="20000"
-            />
-            <button className="text-xs text-indigo-200 font-semibold ml-1 mb-1" type="submit">Save</button>
-          </form>
-        ) : (
-          <>
-            <span className="text-white">{value}</span>
-            <span className="text-base text-white/70 font-normal ml-1">{unit}</span>
-            {onValueChange && (
-              <button
-                type="button"
-                title="Edit"
-                className="ml-2 opacity-70 group-hover:opacity-100 text-xs bg-transparent underline mb-1 text-white/80"
-                onClick={() => setEditing(true)}
-                tabIndex={0}
-              >
-                Edit
-              </button>
-            )}
-          </>
-        )}
+        <span className="text-white">{value}</span>
+        <span className="text-base text-white/70 font-normal ml-1">{unit}</span>
       </div>
     </Card>
   );
