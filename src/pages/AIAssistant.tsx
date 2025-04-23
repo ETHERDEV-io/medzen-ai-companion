@@ -18,7 +18,6 @@ const AIAssistant = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Load chats from localStorage on mount
   useEffect(() => {
     const storedChats = getChats();
     setChats(storedChats);
@@ -31,12 +30,10 @@ const AIAssistant = () => {
     }
   }, []);
 
-  // Scroll to bottom of messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [activeChat?.messages]);
 
-  // Handle new chat creation
   const handleNewChat = () => {
     const newChat = createChat();
     setChats([...chats, newChat]);
@@ -44,17 +41,14 @@ const AIAssistant = () => {
     setMessage("");
   };
 
-  // Handle chat selection
   const handleSelectChat = (chatId: string) => {
     const selectedChat = chats.find(chat => chat.id === chatId);
     if (selectedChat) {
       setActiveChat(selectedChat);
-      // Also update in localStorage
       localStorage.setItem('medzen-active-chat-id', chatId);
     }
   };
 
-  // Handle chat deletion
   const handleDeleteChat = (chatId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     
@@ -67,7 +61,6 @@ const AIAssistant = () => {
     }
   };
 
-  // Handle message submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -75,7 +68,6 @@ const AIAssistant = () => {
     
     let currentActiveChat = activeChat;
     
-    // If no active chat, create a new one
     if (!currentActiveChat) {
       const newChat = createChat();
       setChats([...chats, newChat]);
@@ -83,30 +75,24 @@ const AIAssistant = () => {
       currentActiveChat = newChat;
     }
     
-    // Add user message
     const updatedChat = addMessage(currentActiveChat.id, message, "user");
     if (updatedChat) {
       setActiveChat(updatedChat);
       
-      // Update chats list
       const updatedChats = getChats();
       setChats(updatedChats);
     }
     
-    // Clear input
     setMessage("");
     
-    // Generate AI response
     setIsProcessing(true);
     try {
       const aiResponse = await generateAIResponse(updatedChat?.messages || []);
       
-      // Add AI response
       const finalChat = addMessage(currentActiveChat.id, aiResponse, "assistant");
       if (finalChat) {
         setActiveChat(finalChat);
         
-        // Update chats list
         const finalChats = getChats();
         setChats(finalChats);
       }
@@ -122,7 +108,6 @@ const AIAssistant = () => {
     }
   };
 
-  // Handle document upload
   const handleUploadClick = () => {
     fileInputRef.current?.click();
   };
@@ -131,12 +116,8 @@ const AIAssistant = () => {
     const file = e.target.files?.[0];
     if (!file) return;
     
-    // In a real implementation, this would handle file uploads
-    // For now, we'll simulate document analysis
-    
     setIsProcessing(true);
     
-    // Create chat if needed
     let currentActiveChat = activeChat;
     if (!currentActiveChat) {
       const newChat = createChat(`Document: ${file.name}`);
@@ -145,7 +126,6 @@ const AIAssistant = () => {
       currentActiveChat = newChat;
     }
     
-    // Add user message about document
     const userMessage = `I've uploaded a document: ${file.name}. Can you analyze it for me?`;
     const updatedChat = addMessage(currentActiveChat.id, userMessage, "user");
     if (updatedChat) {
@@ -153,7 +133,6 @@ const AIAssistant = () => {
       setChats(getChats());
     }
     
-    // Simulate document processing
     setTimeout(() => {
       const aiResponse = "I've analyzed your document. This is a simulated response as document processing is not fully implemented in this demo. In a complete implementation, I would extract text from your document and provide insights based on its content.";
       
@@ -165,14 +144,12 @@ const AIAssistant = () => {
       
       setIsProcessing(false);
       
-      // Reset file input
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
     }, 2000);
   };
 
-  // Suggested prompts
   const suggestedPrompts = [
     "What does a healthy diet look like?",
     "Can you explain what cholesterol is?",
@@ -182,12 +159,10 @@ const AIAssistant = () => {
     "Can you explain what blood pressure readings mean?"
   ];
 
-  // Handle using a suggested prompt
   const handleUseSuggestedPrompt = (prompt: string) => {
     setMessage(prompt);
   };
 
-  // Export conversation
   const handleExportChat = () => {
     if (!activeChat) return;
     
@@ -211,13 +186,10 @@ const AIAssistant = () => {
     });
   };
 
-  // Format message content (simple markdown-like parsing)
   const formatMessageContent = (content: string) => {
-    // Split by newlines and render paragraphs
     return content.split('\n').map((paragraph, index) => {
       if (paragraph.trim() === '') return <br key={index} />;
       
-      // Simple bullet list detection
       if (paragraph.startsWith('* ') || paragraph.startsWith('- ')) {
         return <li key={index}>{paragraph.slice(2)}</li>;
       }
@@ -227,10 +199,9 @@ const AIAssistant = () => {
   };
 
   return (
-    <div className="container mx-auto py-8 max-w-7xl">
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-[calc(100vh-12rem)]">
-        {/* Sidebar */}
-        <div className="hidden lg:flex flex-col h-full border rounded-lg overflow-hidden bg-card">
+    <div className="container mx-auto py-0 px-0 max-w-full">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-0 h-[calc(100vh-5rem)]">
+        <div className="hidden lg:flex flex-col h-full border rounded-none overflow-hidden bg-card">
           <div className="p-4 border-b flex justify-between items-center">
             <h2 className="font-semibold">Conversations</h2>
             <Button variant="ghost" size="icon" onClick={handleNewChat} title="New Chat">
@@ -294,9 +265,7 @@ const AIAssistant = () => {
           </div>
         </div>
         
-        {/* Main Chat Area */}
-        <div className="lg:col-span-3 flex flex-col h-full border rounded-lg overflow-hidden bg-card">
-          {/* Mobile Header */}
+        <div className="lg:col-span-3 flex flex-col h-full border rounded-none overflow-hidden bg-card">
           <div className="lg:hidden p-4 border-b flex items-center justify-between">
             <Button variant="ghost" size="icon" onClick={handleNewChat}>
               <Plus className="h-4 w-4" />
@@ -307,8 +276,7 @@ const AIAssistant = () => {
             </Button>
           </div>
           
-          {/* Messages Area */}
-          <ScrollArea className="flex-1 p-4">
+          <ScrollArea className="flex-1 p-4 md:p-8 xl:p-16">
             {!activeChat || activeChat.messages.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center text-center space-y-6 p-8">
                 <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center">
@@ -393,7 +361,6 @@ const AIAssistant = () => {
             )}
           </ScrollArea>
           
-          {/* Input Area */}
           <div className="p-4 border-t">
             <form onSubmit={handleSubmit} className="relative">
               <Textarea
