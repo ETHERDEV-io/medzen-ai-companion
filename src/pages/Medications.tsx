@@ -94,9 +94,6 @@ export default function Medications() {
         <h1 className="text-3xl font-bold flex items-center gap-2">
           <Pill className="w-6 h-6" /> Medications
         </h1>
-        <Button className="gap-2" onClick={openAddDialog}>
-          <Plus className="w-4 h-4" /> Add Medication
-        </Button>
       </div>
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
@@ -177,6 +174,11 @@ export default function Medications() {
           ))}
         </div>
       )}
+      <div className="flex justify-center mt-8">
+        <Button className="gap-2" onClick={openAddDialog}>
+          <Plus className="w-4 h-4" /> Add Medication
+        </Button>
+      </div>
     </div>
   );
 }

@@ -56,17 +56,17 @@ export default function SymptomChecker() {
           <Search className="w-6 h-6" /> Symptom Checker
         </h1>
         <p className="text-muted-foreground mt-2 max-w-xl">
-          Select or search your symptoms below and click "Analyze" to get information and potential conditions.
+          Select your symptoms or use the search below, then click "Analyze" to view insights. You can quickly add symptoms by clicking or typing; remove with the '×' button.
         </p>
       </div>
-      <Card className="mb-8">
+      <Card className="mb-8 shadow-md border-none">
         <CardHeader>
-          <CardTitle>Select or Search for Symptoms</CardTitle>
+          <CardTitle className="text-lg">Your Symptoms</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="mb-4 flex gap-2 flex-wrap">
             {selected.map((s) => (
-              <span key={s} className="bg-primary/10 rounded-full px-3 py-1 flex items-center gap-1 text-sm text-primary font-medium">
+              <span key={s} className="bg-primary/10 rounded-full px-3 py-1 flex items-center gap-1 text-sm text-primary font-medium hover:bg-primary/20 transition">
                 {s}
                 <Button size="icon" className="w-5 h-5 text-muted-foreground" variant="ghost" onClick={() => removeSymptom(s)}>
                   <X className="w-3 h-3" />
@@ -82,7 +82,7 @@ export default function SymptomChecker() {
               className="pr-10"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Type symptom (e.g. headache)..."
+              placeholder="Start typing a symptom (e.g. headache)..."
               onKeyDown={e => {
                 if (e.key === "Enter" && search.trim()) {
                   addSymptom(search.trim());
@@ -104,7 +104,13 @@ export default function SymptomChecker() {
           {suggestions.length > 0 && (
             <div className="mt-3 flex flex-wrap gap-2">
               {suggestions.slice(0, 8).map((sug) => (
-                <Button size="sm" key={sug} onClick={() => addSymptom(sug)} variant="secondary" className="rounded-full px-3 flex gap-1 items-center hover:scale-105 transition">
+                <Button
+                  size="sm"
+                  key={sug}
+                  onClick={() => addSymptom(sug)}
+                  variant="secondary"
+                  className="rounded-full px-3 flex gap-1 items-center hover:bg-primary/10 hover:text-primary/90 transition"
+                >
                   <Check className="w-3 h-3" /> {sug}
                 </Button>
               ))}
@@ -113,10 +119,9 @@ export default function SymptomChecker() {
         </CardContent>
         <CardFooter>
           <Button
-            className="mt-2"
+            className="w-full mt-2"
             disabled={selected.length === 0}
             onClick={() => {
-              // Show analysis section here
               document.getElementById("analysis")?.scrollIntoView({ behavior: "smooth" });
             }}
           >
@@ -142,7 +147,7 @@ export default function SymptomChecker() {
               </ul>
             )}
             <div className="rounded-md bg-muted px-4 py-3 mt-2 text-muted-foreground text-sm">
-              AI-powered analysis and possible conditions will appear here in the next release.
+              AI analysis and possible health suggestions will appear in the next version.
             </div>
           </CardContent>
         </Card>

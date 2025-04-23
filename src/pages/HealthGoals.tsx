@@ -30,7 +30,6 @@ export default function HealthGoals() {
     JSON.parse(localStorage.getItem("custom-health-goals") || "[]")
   );
 
-  // New: each goal's daily progress log. Format: { "2024-04-23": { walk: "1", sleep: "5", ... }, ... }
   const [progressLog, setProgressLog] = useState<Record<string, Record<string, string>>>(
     JSON.parse(localStorage.getItem("modern-health-progress-log") || "{}")
   );
@@ -55,7 +54,6 @@ export default function HealthGoals() {
     });
   }
 
-  // New: Update per-goal progress for today (from the calendar or summary).
   function handleDailyProgressChange(goalKey: string, value: string) {
     const dateStr = new Date().toISOString().slice(0, 10);
     setProgressLog(prev => {
@@ -104,7 +102,7 @@ export default function HealthGoals() {
     }));
 
   return (
-    <main className="w-full min-h-screen flex flex-col items-center bg-gradient-to-tr from-[#1a1f2c] to-[#221f26] pb-8">
+    <main className="w-full min-h-screen flex flex-col items-center bg-background pb-8">
       <div className="w-full max-w-4xl mx-auto px-2 md:px-6 pt-4">
         <header className="w-full flex flex-col items-center mb-2 mt-1">
           <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-white drop-shadow mb-1">
@@ -141,6 +139,7 @@ export default function HealthGoals() {
           open={dialogOpen}
           onOpenChange={setDialogOpen}
           onSave={handleAddCustomGoal}
+          hideExerciseField
         />
         <EditGoalDialog
           open={editDialogOpen}
