@@ -86,6 +86,12 @@
   }
 }
 
+@layer utilities {
+  .glass-morphism {
+    @apply backdrop-blur-xl bg-white/10 border border-white/5 shadow-[0_4px_16px_-2px_rgba(0,0,0,0.35)];
+  }
+}
+
 @layer base {
   * {
     @apply border-border;
