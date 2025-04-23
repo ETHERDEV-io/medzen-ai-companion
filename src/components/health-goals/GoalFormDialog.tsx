@@ -1,6 +1,6 @@
 
 import { useState, ChangeEvent } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,9 +9,10 @@ type GoalFormDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSave: (goalData: { label: string; value: string; unit: string; type?: string }) => void;
+  hideExerciseField?: boolean;
 };
 
-export default function GoalFormDialog({ open, onOpenChange, onSave }: GoalFormDialogProps) {
+export default function GoalFormDialog({ open, onOpenChange, onSave, hideExerciseField = false }: GoalFormDialogProps) {
   const [goalName, setGoalName] = useState("");
   const [value, setValue] = useState("");
   const [unit, setUnit] = useState("");
@@ -45,18 +46,25 @@ export default function GoalFormDialog({ open, onOpenChange, onSave }: GoalFormD
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>Add New {isExercise ? "Exercise" : "Goal"}</DialogTitle>
+            <DialogDescription>
+              Create a new health goal to track your progress
+            </DialogDescription>
           </DialogHeader>
-          <div className="mb-2 flex items-center gap-2">
-            <label className="flex items-center cursor-pointer gap-2 text-sm">
-              <input
-                type="checkbox"
-                className="form-checkbox"
-                checked={isExercise}
-                onChange={e => setIsExercise(e.target.checked)}
-              />{" "}
-              This is an exercise
-            </label>
-          </div>
+          
+          {!hideExerciseField && (
+            <div className="mb-2 flex items-center gap-2">
+              <label className="flex items-center cursor-pointer gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  className="form-checkbox"
+                  checked={isExercise}
+                  onChange={e => setIsExercise(e.target.checked)}
+                />{" "}
+                This is an exercise
+              </label>
+            </div>
+          )}
+          
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="name" className="text-right">
