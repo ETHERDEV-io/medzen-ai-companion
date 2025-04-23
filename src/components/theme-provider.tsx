@@ -4,21 +4,24 @@
 import * as React from "react"
 import { ThemeProvider as NextThemesProvider } from "next-themes"
 
-// Define the ThemeProviderProps interface and Attribute type
+// Define the Attribute type to match next-themes expectations
+type Attribute = "class" | "data-theme" | "data-mode"
+
+// Define the ValueObject type to match next-themes expectations
+type ValueObject = Record<string, string>
+
+// Define the ThemeProviderProps interface
 interface ThemeProviderProps {
   children: React.ReactNode
   defaultTheme?: string
   storageKey?: string
   attribute?: Attribute | Attribute[]
-  value?: object
+  value?: ValueObject
   forcedTheme?: string
   enableSystem?: boolean
   enableColorScheme?: boolean
   disableTransitionOnChange?: boolean
 }
-
-// Define the Attribute type to match next-themes expectations
-type Attribute = "class" | "data-theme" | "data-mode"
 
 export function ThemeProvider({ 
   children, 
