@@ -1,4 +1,3 @@
-
 import HealthGoalCard from "@/components/health-goals/HealthGoalCard";
 import { useState } from "react";
 import { Plus, Edit } from "lucide-react";
@@ -6,8 +5,8 @@ import GoalFormDialog from "@/components/health-goals/GoalFormDialog";
 import ProgressGraph from "@/components/health-goals/ProgressGraph";
 import { Button } from "@/components/ui/button";
 import EditGoalDialog from "@/components/health-goals/EditGoalDialog";
+import HealthGoalsCalendar from "@/components/health-goals/HealthGoalsCalendar";
 
-// Main goals, now without "Heart Rate"
 const GOAL_PRESETS = [
   { label: "Walk", key: "walk", default: "2.5", unit: "km", type: "goal" },
   { label: "Sleep", key: "sleep", default: "6", unit: "hr", type: "goal" },
@@ -16,11 +15,9 @@ const GOAL_PRESETS = [
   { label: "Calories", key: "calories", default: "450", unit: "kcal", type: "goal" }
 ] as const;
 
-// Key types
 type GoalKey = typeof GOAL_PRESETS[number]["key"];
 type GoalState = Record<GoalKey, string>;
 
-// Helper: get initial data from localStorage or use defaults
 function getInitialGoals(): GoalState {
   const saved = localStorage.getItem("modern-health-goals");
   if (saved) return JSON.parse(saved);
@@ -38,7 +35,6 @@ export default function HealthGoals() {
   const [exercises, setExercises] = useState<Array<{label:string,value:string,unit:string}>>(getInitialExercises());
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  // New: Manage which goal is being edited
   const [editData, setEditData] = useState<{goal: any, idx: number|null, type: "preset"|"custom"|"exercise"|null}>({goal: null, idx: null, type: null});
   const [editDialogOpen, setEditDialogOpen] = useState(false);
 
@@ -49,7 +45,6 @@ export default function HealthGoals() {
       return updated;
     });
   }
-
   function handleCustomGoalChange(idx: number, value: string) {
     setCustomGoals(prev => {
       const updated = prev.map((g, i) => (i === idx ? { ...g, value } : g));
@@ -57,7 +52,6 @@ export default function HealthGoals() {
       return updated;
     });
   }
-
   function handleExerciseChange(idx: number, value: string) {
     setExercises(prev => {
       const updated = prev.map((g, i) => (i === idx ? { ...g, value } : g));
@@ -67,7 +61,6 @@ export default function HealthGoals() {
   }
 
   function handleAddCustomGoal(goal: {label: string, value: string, unit: string, type?: string}) {
-    // If this is labeled as exercise, treat separately
     if (goal.type === "exercise") {
       setExercises(prev => {
         const next = [...prev, {label: goal.label, value: goal.value, unit: goal.unit}];
@@ -83,15 +76,12 @@ export default function HealthGoals() {
     }
     setDialogOpen(false);
   }
-
-  // Editing code for pop-up dialog
   function handleEditGoal(goal: any, idx: number|null, type: "preset"|"custom"|"exercise") {
     setEditData({goal, idx, type});
     setEditDialogOpen(true);
   }
   function handleGoalEditSave(newData: {label: string, value: string, unit: string}) {
     if (editData.type === "preset" && editData.goal) {
-      // Update preset value
       setGoals(prev => {
         const updated = {...prev, [editData.goal.key]: newData.value};
         localStorage.setItem("modern-health-goals", JSON.stringify(updated));
@@ -113,49 +103,53 @@ export default function HealthGoals() {
     setEditDialogOpen(false);
   }
 
-  // Example fake progress data (past 7 days)
   const progressData = Array(7)
     .fill(0)
     .map((_, i) => ({
       date: [
         "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"
       ][i],
-      progress: Math.min(100, Math.round(50 + Math.random() * 50 - 10 * i)), // fake
+      progress: Math.min(100, Math.round(60 + Math.random() * 40 - 10 * i)), // fake, DO replace in prod
     }));
 
   return (
     <main className="w-full min-h-screen flex flex-col items-center bg-gradient-to-tr from-[#1a1f2c] to-[#221f26] pb-8">
-      <div className="w-full max-w-2xl mx-auto px-1 md:px-4 pt-4">
+      <div className="w-full max-w-4xl mx-auto px-2 md:px-6 pt-4">
         <header className="w-full flex flex-col items-center mb-2 mt-1">
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white drop-shadow mb-1">
+          <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-white drop-shadow mb-1">
             Health Dashboard
           </h1>
-          <p className="text-sm text-white/80 mb-2 text-center font-normal">
-            Your essential daily health goals – quick & easy to track. Add your own!
+          <p className="text-base text-white/80 mb-4 text-center font-normal">
+            Your daily goals, progress, and exercise tracker.<br />
+            All-in-one and always up-to-date!
           </p>
         </header>
 
-        {/* Progress Graph */}
-        <ProgressGraph data={progressData} />
+        <section className="mb-5">
+          <ProgressGraph data={progressData} />
+          <HealthGoalsCalendar
+            goals={goals}
+            customGoals={customGoals}
+            exercises={exercises}
+          />
+        </section>
 
         <div className="flex mb-2 justify-between items-center w-full px-1">
-          <h2 className="font-bold text-lg text-white/90">My Goals</h2>
+          <h2 className="font-bold text-xl text-white/90">My Goals</h2>
           <Button
             className="flex gap-1 text-sm px-3 py-1 bg-primary/80 hover:bg-primary"
             onClick={() => setDialogOpen(true)}
             variant="outline"
+            type="button"
           >
             <Plus className="w-4 h-4" /> Add Goal
           </Button>
         </div>
-        {/* Add Goal Dialog */}
         <GoalFormDialog
           open={dialogOpen}
           onOpenChange={setDialogOpen}
           onSave={handleAddCustomGoal}
         />
-
-        {/* Edit Goal Dialog */}
         <EditGoalDialog
           open={editDialogOpen}
           onOpenChange={setEditDialogOpen}
@@ -171,7 +165,6 @@ export default function HealthGoals() {
             mt-4
           "
         >
-          {/* Preset goals */}
           {GOAL_PRESETS.map(goal => (
             <HealthGoalCard
               key={goal.key}
@@ -183,10 +176,9 @@ export default function HealthGoals() {
               onEdit={() => handleEditGoal(goal, null, "preset")}
             />
           ))}
-          {/* Custom goals */}
           {customGoals.map((goal, idx) => (
             <HealthGoalCard
-              key={goal.label}
+              key={goal.label + idx}
               label={goal.label}
               value={goal.value}
               unit={goal.unit}
@@ -197,16 +189,14 @@ export default function HealthGoals() {
           ))}
         </section>
 
-        {/* Exercises section */}
         <div className="mt-10 mb-2 px-1 flex items-center justify-between">
-          <h2 className="font-bold text-lg text-white/90">Exercises</h2>
+          <h2 className="font-bold text-xl text-white/90">Exercises</h2>
           <Button
             size="sm"
             variant="outline"
             className="gap-1"
-            onClick={() => {
-              setDialogOpen(true);
-            }}
+            onClick={() => setDialogOpen(true)}
+            type="button"
           >
             <Plus className="w-4 h-4" /> Add Exercise
           </Button>
