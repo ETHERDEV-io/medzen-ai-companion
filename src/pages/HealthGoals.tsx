@@ -39,6 +39,8 @@ export default function HealthGoals() {
   const [editData, setEditData] = useState<{goal: any, idx: number|null, type: "preset"|"custom"|null}>({goal: null, idx: null, type: null});
   const [editDialogOpen, setEditDialogOpen] = useState(false);
 
+  const [selectedDate, setSelectedDate] = useState<string>(() => new Date().toISOString().slice(0, 10));
+
   function handleValueChange(key: GoalKey, val: string) {
     setGoals(prev => {
       const updated = { ...prev, [key]: val };
@@ -54,8 +56,8 @@ export default function HealthGoals() {
     });
   }
 
-  function handleDailyProgressChange(goalKey: string, value: string) {
-    const dateStr = new Date().toISOString().slice(0, 10);
+  function handleDailyProgressChange(goalKey: string, value: string, dateOverride?: string) {
+    const dateStr = dateOverride || new Date().toISOString().slice(0, 10);
     setProgressLog(prev => {
       const next = {...prev, [dateStr]: {...(prev[dateStr] || {}), [goalKey]: value}};
       localStorage.setItem("modern-health-progress-log", JSON.stringify(next));
@@ -63,7 +65,7 @@ export default function HealthGoals() {
     });
   }
 
-  function handleAddCustomGoal(goal: {label: string, value: string, unit: string, type?: string}) {
+  function handleAddCustomGoal(goal: {label: string, value: string, unit: string}) {
     setCustomGoals(prev => {
       const next = [...prev, goal];
       localStorage.setItem("custom-health-goals", JSON.stringify(next));
@@ -92,17 +94,33 @@ export default function HealthGoals() {
     setEditDialogOpen(false);
   }
 
-  const progressData = Array(7)
-    .fill(0)
-    .map((_, i) => ({
-      date: [
-        "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"
-      ][i],
-      progress: Math.min(100, Math.round(60 + Math.random() * 40 - 10 * i)), // fake, DO replace in prod
-    }));
+  function getDateRangeData(days: number) {
+    const arr: Array<{date: string, progress: number}> = [];
+    for (let i = days - 1; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const ds = d.toISOString().slice(0, 10);
+      const entries = [
+        ...Object.entries(goals).map(([k, v]) => ({ key: k, planned: Number(v), done: Number(progressLog[ds]?.[k] || 0) })),
+        ...customGoals.map((g) => ({
+          key: g.label,
+          planned: Number(g.value),
+          done: Number(progressLog[ds]?.[g.label] || 0),
+        }))
+      ];
+      const numGoals = entries.length;
+      const completed = entries.filter(g => g.done >= g.planned && g.planned > 0).length;
+      arr.push({
+        date: d.toLocaleDateString(undefined, { weekday: "short" }),
+        progress: numGoals === 0 ? 0 : Math.round((completed / numGoals) * 100)
+      });
+    }
+    return arr;
+  }
+  const progressData = getDateRangeData(7);
 
   return (
-    <main className="w-full min-h-screen flex flex-col items-center bg-background pb-8">
+    <main className="w-full min-h-screen flex flex-col items-center bg-gradient-to-br from-secondary via-background to-primary/40 pb-8">
       <div className="w-full max-w-4xl mx-auto px-2 md:px-6 pt-4">
         <header className="w-full flex flex-col items-center mb-2 mt-1">
           <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-white drop-shadow mb-1">
@@ -121,6 +139,8 @@ export default function HealthGoals() {
             customGoals={customGoals}
             progressLog={progressLog}
             onDailyProgressChange={handleDailyProgressChange}
+            selectedDate={selectedDate}
+            onDateSelected={(dateStr: string) => setSelectedDate(dateStr)}
           />
         </section>
 
@@ -139,7 +159,6 @@ export default function HealthGoals() {
           open={dialogOpen}
           onOpenChange={setDialogOpen}
           onSave={handleAddCustomGoal}
-          hideExerciseField
         />
         <EditGoalDialog
           open={editDialogOpen}
