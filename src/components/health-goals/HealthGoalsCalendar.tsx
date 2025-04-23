@@ -15,10 +15,21 @@ interface HealthGoalsCalendarProps {
   exercises: Array<{label: string, value: string, unit: string}>;
 }
 
+interface GoalSummaryItem {
+  label: string;
+  value: string;
+  completed: boolean;
+}
+
+interface DailyGoalCompletion {
+  done: boolean;
+  summary: GoalSummaryItem[];
+}
+
 // Dummy completion state generator, you can link with real goal tracking
 function generateGoalCompletion(goals: Record<string, string>, customGoals: any[], exercises: any[]) {
   // Let's just fake that today and yesterday had completion, rest not
-  const data = {};
+  const data: Record<string, DailyGoalCompletion> = {};
   let today = new Date();
   for(let i=0;i<7;i++) {
     let date = new Date(today);
@@ -42,7 +53,7 @@ export default function HealthGoalsCalendar({ goals, customGoals, exercises }: H
 
   // Dates to highlight (completed)
   const completedDates = Object.entries(goalCompletion)
-    .filter(([date, dat]) => dat.done)
+    .filter(([date, data]) => data.done)
     .map(([date]) => new Date(date));
 
   // Get summary for selected date or today
