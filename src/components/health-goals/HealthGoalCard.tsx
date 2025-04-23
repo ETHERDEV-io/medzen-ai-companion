@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import { PersonStanding, Heart, Bed, Droplet, Dumbbell, Flame } from "lucide-react";
+import { PersonStanding, Heart, Bed, Droplet, Dumbbell, Flame, Edit } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 
@@ -11,6 +11,7 @@ const icons = {
   water: Droplet,
   gym: Dumbbell,
   calories: Flame,
+  dumbbell: Dumbbell,
 };
 
 const colors = {
@@ -20,9 +21,10 @@ const colors = {
   water: "from-green-300 to-emerald-500",
   gym: "from-purple-400 to-pink-400",
   calories: "from-rose-400 to-orange-400",
+  dumbbell: "from-indigo-400 to-blue-500",
 };
 
-type GoalKey = "walk" | "heart" | "sleep" | "water" | "gym" | "calories";
+type GoalKey = "walk" | "heart" | "sleep" | "water" | "gym" | "calories" | "dumbbell";
 
 interface HealthGoalCardProps {
   label: string;
@@ -31,6 +33,7 @@ interface HealthGoalCardProps {
   icon: GoalKey;
   color?: string;
   onValueChange?: (v: string) => void;
+  onEdit?: () => void;
 }
 
 export default function HealthGoalCard({
@@ -39,7 +42,8 @@ export default function HealthGoalCard({
   unit,
   icon,
   color,
-  onValueChange
+  onValueChange,
+  onEdit
 }: HealthGoalCardProps) {
   const [editing, setEditing] = useState(false);
   const [editVal, setEditVal] = useState(value);
@@ -75,6 +79,15 @@ export default function HealthGoalCard({
       <div className="flex items-center gap-2 mb-2">
         <Icon className="w-7 h-7 flex-shrink-0 drop-shadow text-white" />
         <div className="text-xs tracking-wide font-medium text-white/90">{label}</div>
+        {onEdit && (
+          <button
+            onClick={onEdit}
+            className="ml-auto p-1 rounded-full hover:bg-white/10 text-white/70 hover:text-white transition-colors"
+            title="Edit goal"
+          >
+            <Edit className="h-4 w-4" />
+          </button>
+        )}
       </div>
       <div className="text-2xl sm:text-3xl font-semibold flex items-end gap-2 min-h-[32px]">
         {editing ? (

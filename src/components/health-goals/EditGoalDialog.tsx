@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { X } from "lucide-react";
 
 interface EditGoalDialogProps {
   open: boolean;
@@ -23,9 +24,11 @@ export default function EditGoalDialog({
   const [unit, setUnit] = useState(initialData?.unit || "");
 
   useEffect(() => {
-    setLabel(initialData?.label || "");
-    setValue(initialData?.value || "");
-    setUnit(initialData?.unit || "");
+    if (open) {
+      setLabel(initialData?.label || "");
+      setValue(initialData?.value || "");
+      setUnit(initialData?.unit || "");
+    }
   }, [initialData, open]);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -40,6 +43,16 @@ export default function EditGoalDialog({
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>Edit Goal</DialogTitle>
+            <Button 
+              type="button" 
+              variant="ghost" 
+              size="icon" 
+              className="absolute right-4 top-4" 
+              onClick={() => onOpenChange(false)}
+            >
+              <X className="h-4 w-4" />
+              <span className="sr-only">Close</span>
+            </Button>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
@@ -81,8 +94,8 @@ export default function EditGoalDialog({
               />
             </div>
           </div>
-          <DialogFooter>
-            <Button type="submit">Save</Button>
+          <DialogFooter className="gap-2">
+            <Button type="submit" className="mr-2">Save</Button>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
