@@ -1,6 +1,7 @@
+
 import HealthGoalCard from "@/components/health-goals/HealthGoalCard";
 import { useState } from "react";
-import { Plus, Edit } from "lucide-react";
+import { Plus } from "lucide-react";
 import GoalFormDialog from "@/components/health-goals/GoalFormDialog";
 import ProgressGraph from "@/components/health-goals/ProgressGraph";
 import { Button } from "@/components/ui/button";
@@ -108,8 +109,9 @@ export default function HealthGoals() {
           done: Number(progressLog[ds]?.[g.label] || 0),
         }))
       ];
-      const numGoals = entries.length;
-      const completed = entries.filter(g => g.done >= g.planned && g.planned > 0).length;
+      const validEntries = entries.filter(entry => entry.planned > 0);
+      const numGoals = validEntries.length;
+      const completed = validEntries.filter(g => g.done >= g.planned).length;
       arr.push({
         date: d.toLocaleDateString(undefined, { weekday: "short" }),
         progress: numGoals === 0 ? 0 : Math.round((completed / numGoals) * 100)

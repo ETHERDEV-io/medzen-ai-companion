@@ -99,14 +99,14 @@ export default function HealthGoalsCalendar({
   const validGoals = planAndDone.filter(g => g.planned > 0);
   const completePercent = validGoals.length === 0 ? 0 : Math.round((validGoals.filter(g => g.completed).length / validGoals.length) * 100);
 
-  // Modified to use modifiers instead of a function for day className
+  // Simplified calendar with clean styling
   return (
-    <Card className="bg-gradient-to-tr from-sidebar-accent/20 to-primary/10 rounded-xl border-0 shadow mb-8 p-4 md:p-5">
-      <div className="flex flex-col md:flex-row gap-8 items-start animate-fade-in">
+    <Card className="bg-white rounded-xl shadow mb-8 p-4 md:p-5">
+      <div className="flex flex-col md:flex-row gap-8 items-start">
         {/* Calendar */}
         <div>
           <div className="text-base font-semibold text-primary mb-2">Goal Calendar</div>
-          <div className="rounded-2xl shadow-lg p-2 bg-background/80 ring-2 ring-primary/20">
+          <div className="rounded-lg shadow bg-white p-1">
             <Calendar
               mode="single"
               selected={calendarSelected}
@@ -120,23 +120,16 @@ export default function HealthGoalsCalendar({
                 completed: (date) => completedDaysSet.has(date.toDateString()),
               }}
               modifiersClassNames={{
-                completed: "bg-primary/80 text-white",
-                selected: "bg-accent text-white border-2 border-accent dark:bg-primary dark:text-white",
-              }}
-              classNames={{
-                day: "w-9 h-9 rounded-lg flex items-center justify-center font-medium transition-colors hover:bg-muted",
-                months: "flex flex-col",
-                month: "space-y-2",
-                // ...rest remain shadcn defaults
+                completed: "bg-green-500 text-white",
               }}
               className="pointer-events-auto"
             />
           </div>
-          <div className="mt-2 text-xs text-primary/60 px-1">Green = all goals completed, Purple = selected</div>
+          <div className="mt-2 text-xs text-muted-foreground px-1">Green = all goals completed</div>
         </div>
         {/* Progress for viewed day */}
-        <div className="flex-1 min-w-[240px] bg-card/80 rounded-xl shadow-md px-4 py-3 border border-primary/10">
-          <div className="font-bold mb-1 text-sm text-primary/90">
+        <div className="flex-1 min-w-[240px] bg-white rounded-xl shadow-sm px-4 py-3 border">
+          <div className="font-bold mb-1 text-sm">
             {(calendarSelected ? calendarSelected.toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" }) : "Today") + "'s Goal Progress"}
           </div>
           <ul className="grid gap-3 mb-1">
@@ -147,7 +140,7 @@ export default function HealthGoalsCalendar({
               return (
                 <li key={goal.key + idx} className="flex items-center gap-2">
                   <span className={`w-2 h-2 rounded-full ${completed ? "bg-green-400" : "bg-gray-300"} inline-block`} />
-                  <span className="font-medium text-primary/90">{goal.label}</span>
+                  <span className="font-medium">{goal.label}</span>
                   <span className="ml-auto text-sm flex items-end gap-1">
                     <span className={completed ? "text-green-700 font-bold" : "text-slate-400"}>
                       {goal.done || 0} <span className="text-xs">{goal.unit}</span>
@@ -160,7 +153,7 @@ export default function HealthGoalsCalendar({
                   {editable && (
                     <Input
                       type="number"
-                      className="ml-2 w-16 py-1 px-1 h-7 bg-accent/10 border-primary/40 text-primary"
+                      className="ml-2 w-16 py-1 px-1 h-7"
                       min={0}
                       step="any"
                       value={goal.done}
@@ -171,7 +164,7 @@ export default function HealthGoalsCalendar({
               );
             })}
           </ul>
-          <div className="flex items-center gap-2 mt-3 text-md font-semibold text-primary/90">
+          <div className="flex items-center gap-2 mt-3 text-md font-semibold">
             <CirclePercent className="w-5 h-5 text-green-500" />
             {progressDS === todayStr ? "Today's " : ""}Completion: {completePercent}%
           </div>
