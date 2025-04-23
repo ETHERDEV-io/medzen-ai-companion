@@ -88,20 +88,6 @@ export default function HealthGoalsCalendar({
   }
   const completedDaysSet = new Set(calendarDates.filter(d => isDayCompleted(d.toISOString().slice(0, 10))).map(d => d.toDateString()));
 
-  // Highlight rules for calendar
-  function calendarDayClassName(date: Date, selected: boolean) {
-    const isComplete = completedDaysSet.has(date.toDateString());
-    const base = "w-9 h-9 rounded-lg flex items-center justify-center font-medium transition-colors";
-    // Custom highlight for selected, complete, or both:
-    if (selected) {
-      return `${base} bg-accent text-white border-2 border-accent dark:bg-primary dark:text-white`;
-    }
-    if (isComplete) {
-      return `${base} bg-primary/80 text-white`;
-    }
-    return `${base} hover:bg-muted`;
-  }
-
   // For goal progress list, use selected date or today
   const progressDS = calendarSelected ? calendarSelected.toISOString().slice(0, 10) : todayStr;
   const planAndDone = allGoals.map(goal => {
@@ -113,7 +99,7 @@ export default function HealthGoalsCalendar({
   const validGoals = planAndDone.filter(g => g.planned > 0);
   const completePercent = validGoals.length === 0 ? 0 : Math.round((validGoals.filter(g => g.completed).length / validGoals.length) * 100);
 
-  // Calendar dark-style card, improved spacing, modern pop
+  // Modified to use modifiers instead of a function for day className
   return (
     <Card className="bg-gradient-to-tr from-sidebar-accent/20 to-primary/10 rounded-xl border-0 shadow mb-8 p-4 md:p-5">
       <div className="flex flex-col md:flex-row gap-8 items-start animate-fade-in">
@@ -130,8 +116,15 @@ export default function HealthGoalsCalendar({
                   onDateSelected(date.toISOString().slice(0, 10));
                 }
               }}
+              modifiers={{
+                completed: (date) => completedDaysSet.has(date.toDateString()),
+              }}
+              modifiersClassNames={{
+                completed: "bg-primary/80 text-white",
+                selected: "bg-accent text-white border-2 border-accent dark:bg-primary dark:text-white",
+              }}
               classNames={{
-                day: ({ selected, date }) => calendarDayClassName(date, selected),
+                day: "w-9 h-9 rounded-lg flex items-center justify-center font-medium transition-colors hover:bg-muted",
                 months: "flex flex-col",
                 month: "space-y-2",
                 // ...rest remain shadcn defaults
@@ -192,4 +185,3 @@ export default function HealthGoalsCalendar({
     </Card>
   );
 }
-
