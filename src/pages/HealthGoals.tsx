@@ -1,7 +1,6 @@
-
 import HealthGoalCard from "@/components/health-goals/HealthGoalCard";
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, Trash } from "lucide-react";
 import GoalFormDialog from "@/components/health-goals/GoalFormDialog";
 import ProgressGraph from "@/components/health-goals/ProgressGraph";
 import { Button } from "@/components/ui/button";
@@ -95,6 +94,24 @@ export default function HealthGoals() {
     setEditDialogOpen(false);
   }
 
+  function handleDeleteGoal(idx: number, type: "preset" | "custom", key?: string) {
+    if (type === "custom" && idx !== null) {
+      setCustomGoals(prev => {
+        const updated = prev.filter((_, i) => i !== idx);
+        localStorage.setItem("custom-health-goals", JSON.stringify(updated));
+        return updated;
+      });
+    } else if (type === "preset" && key) {
+      setGoals(prev => {
+        const preset = GOAL_PRESETS.find(g => g.key === key);
+        if (!preset) return prev;
+        const updated = {...prev, [preset.key]: preset.default};
+        localStorage.setItem("modern-health-goals", JSON.stringify(updated));
+        return updated;
+      });
+    }
+  }
+
   function getDateRangeData(days: number) {
     const arr: Array<{date: string, progress: number}> = [];
     for (let i = days - 1; i >= 0; i--) {
@@ -178,28 +195,46 @@ export default function HealthGoals() {
           "
         >
           {GOAL_PRESETS.map(goal => (
-            <HealthGoalCard
-              key={goal.key}
-              label={goal.label}
-              value={goals[goal.key as GoalKey]}
-              unit={goal.unit}
-              icon={goal.key as GoalKey}
-              onValueChange={val => handleValueChange(goal.key as GoalKey, val)}
-              onEdit={() => handleEditGoal(goal, null, "preset")}
-              useDialogEdit
-            />
+            <div key={goal.key} className="relative group">
+              <HealthGoalCard
+                label={goal.label}
+                value={goals[goal.key as GoalKey]}
+                unit={goal.unit}
+                icon={goal.key as GoalKey}
+                onValueChange={val => handleValueChange(goal.key as GoalKey, val)}
+                onEdit={() => handleEditGoal(goal, null, "preset")}
+                useDialogEdit
+              />
+              <button
+                className="absolute top-2 right-2 z-10 opacity-70 group-hover:opacity-100 text-red-500 hover:text-red-700 transition p-1 rounded-full bg-black/60"
+                title="Delete goal (reset to default)"
+                onClick={() => handleDeleteGoal(null, "preset", goal.key)}
+                type="button"
+              >
+                <Trash className="w-4 h-4" />
+              </button>
+            </div>
           ))}
           {customGoals.map((goal, idx) => (
-            <HealthGoalCard
-              key={goal.label + idx}
-              label={goal.label}
-              value={goal.value}
-              unit={goal.unit}
-              icon="walk"
-              onValueChange={val => handleCustomGoalChange(idx, val)}
-              onEdit={() => handleEditGoal(goal, idx, "custom")}
-              useDialogEdit
-            />
+            <div key={goal.label + idx} className="relative group">
+              <HealthGoalCard
+                label={goal.label}
+                value={goal.value}
+                unit={goal.unit}
+                icon="walk"
+                onValueChange={val => handleCustomGoalChange(idx, val)}
+                onEdit={() => handleEditGoal(goal, idx, "custom")}
+                useDialogEdit
+              />
+              <button
+                className="absolute top-2 right-2 z-10 opacity-70 group-hover:opacity-100 text-red-500 hover:text-red-700 transition p-1 rounded-full bg-black/60"
+                title="Delete custom goal"
+                onClick={() => handleDeleteGoal(idx, "custom")}
+                type="button"
+              >
+                <Trash className="w-4 h-4" />
+              </button>
+            </div>
           ))}
         </section>
       </div>
