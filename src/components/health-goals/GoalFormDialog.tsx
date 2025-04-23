@@ -7,29 +7,34 @@ import { Label } from "@/components/ui/label";
 
 interface GoalFormDialogProps {
   open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onSave: (goalData: { name: string; target: number; current: number }) => void;
+  onClose: () => void;
+  onSave: (goalData: { label: string; value: string; unit: string }) => void;
 }
 
-export default function GoalFormDialog({ open, onOpenChange, onSave }: GoalFormDialogProps) {
+export default function GoalFormDialog({ open, onOpenChange, onSave }: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSave: (goalData: { label: string; value: string; unit: string }) => void;
+}) {
   const [goalName, setGoalName] = useState("");
-  const [targetValue, setTargetValue] = useState("");
-  const [currentValue, setCurrentValue] = useState("");
+  const [value, setValue] = useState("");
+  const [unit, setUnit] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSave({
-      name: goalName,
-      target: Number(targetValue),
-      current: Number(currentValue)
+      label: goalName,
+      value: value,
+      unit: unit
     });
     resetForm();
+    onOpenChange(false);
   };
 
   const resetForm = () => {
     setGoalName("");
-    setTargetValue("");
-    setCurrentValue("");
+    setValue("");
+    setUnit("");
   };
 
   return (
@@ -56,32 +61,29 @@ export default function GoalFormDialog({ open, onOpenChange, onSave }: GoalFormD
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="target" className="text-right">
-                Target Value
+              <Label htmlFor="value" className="text-right">
+                Current Value
               </Label>
               <Input
-                id="target"
-                name="target"
-                type="number"
-                placeholder="e.g., 10000"
-                value={targetValue}
-                onChange={(e: ChangeEvent<HTMLInputElement>) => setTargetValue(e.target.value)}
+                id="value"
+                name="value"
+                placeholder="e.g., 5000"
+                value={value}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => setValue(e.target.value)}
                 required
                 className="col-span-3"
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="current" className="text-right">
-                Current Value
+              <Label htmlFor="unit" className="text-right">
+                Unit
               </Label>
               <Input
-                id="current"
-                name="current"
-                type="number"
-                placeholder="e.g., 5000"
-                value={currentValue}
-                onChange={(e: ChangeEvent<HTMLInputElement>) => setCurrentValue(e.target.value)}
-                required
+                id="unit"
+                name="unit"
+                placeholder="e.g., steps"
+                value={unit}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => setUnit(e.target.value)}
                 className="col-span-3"
               />
             </div>

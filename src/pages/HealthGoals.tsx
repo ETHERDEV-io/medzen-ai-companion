@@ -53,6 +53,7 @@ export default function HealthGoals() {
       localStorage.setItem("custom-health-goals", JSON.stringify(next));
       return next;
     });
+    setDialogOpen(false);
   }
 
   // Example fake progress data (past 7 days)
@@ -92,7 +93,7 @@ export default function HealthGoals() {
         </div>
         <GoalFormDialog
           open={dialogOpen}
-          onClose={() => setDialogOpen(false)}
+          onOpenChange={setDialogOpen}
           onSave={handleAddCustomGoal}
         />
 
