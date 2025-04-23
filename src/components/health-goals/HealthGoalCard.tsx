@@ -1,9 +1,11 @@
-import { Walking, Heart, Bed, Droplet, Dumbbell, Flame } from "lucide-react";
+
+import React, { useState } from "react";
+import { PersonStanding, Heart, Bed, Droplet, Dumbbell, Flame } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 
 const icons = {
-  walk: Walking,
+  walk: PersonStanding,
   heart: Heart,
   sleep: Bed,
   water: Droplet,
