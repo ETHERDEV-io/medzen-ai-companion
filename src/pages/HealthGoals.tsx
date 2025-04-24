@@ -48,6 +48,7 @@ export default function HealthGoals() {
       return updated;
     });
   }
+
   function handleCustomGoalChange(idx: number, value: string) {
     setCustomGoals(prev => {
       const updated = prev.map((g, i) => (i === idx ? { ...g, value } : g));
@@ -65,6 +66,53 @@ export default function HealthGoals() {
     });
   }
 
+  function handleDeleteGoal(idx: number, type: "preset" | "custom", key?: string) {
+    if (type === "custom") {
+      setCustomGoals(prev => {
+        const updated = prev.filter((_, i) => i !== idx);
+        localStorage.setItem("custom-health-goals", JSON.stringify(updated));
+        return updated;
+      });
+
+      // Also remove this goal from progress logs
+      const goalLabel = customGoals[idx].label;
+      setProgressLog(prev => {
+        const updated = Object.fromEntries(
+          Object.entries(prev).map(([date, goals]) => [
+            date,
+            Object.fromEntries(
+              Object.entries(goals).filter(([k]) => k !== goalLabel)
+            ),
+          ])
+        );
+        localStorage.setItem("modern-health-progress-log", JSON.stringify(updated));
+        return updated;
+      });
+    } else if (type === "preset" && key) {
+      setGoals(prev => {
+        const preset = GOAL_PRESETS.find(g => g.key === key);
+        if (!preset) return prev;
+        const updated = {...prev, [preset.key]: preset.default};
+        localStorage.setItem("modern-health-goals", JSON.stringify(updated));
+        return updated;
+      });
+
+      // Reset progress for this preset goal
+      setProgressLog(prev => {
+        const updated = Object.fromEntries(
+          Object.entries(prev).map(([date, goals]) => [
+            date,
+            Object.fromEntries(
+              Object.entries(goals).filter(([k]) => k !== key)
+            ),
+          ])
+        );
+        localStorage.setItem("modern-health-progress-log", JSON.stringify(updated));
+        return updated;
+      });
+    }
+  }
+
   function handleAddCustomGoal(goal: {label: string, value: string, unit: string}) {
     setCustomGoals(prev => {
       const next = [...prev, goal];
@@ -73,10 +121,12 @@ export default function HealthGoals() {
     });
     setDialogOpen(false);
   }
+
   function handleEditGoal(goal: any, idx: number|null, type: "preset"|"custom") {
     setEditData({goal, idx, type});
     setEditDialogOpen(true);
   }
+
   function handleGoalEditSave(newData: {label: string, value: string, unit: string}) {
     if (editData.type === "preset" && editData.goal) {
       setGoals(prev => {
@@ -92,24 +142,6 @@ export default function HealthGoals() {
       });
     }
     setEditDialogOpen(false);
-  }
-
-  function handleDeleteGoal(idx: number, type: "preset" | "custom", key?: string) {
-    if (type === "custom" && idx !== null) {
-      setCustomGoals(prev => {
-        const updated = prev.filter((_, i) => i !== idx);
-        localStorage.setItem("custom-health-goals", JSON.stringify(updated));
-        return updated;
-      });
-    } else if (type === "preset" && key) {
-      setGoals(prev => {
-        const preset = GOAL_PRESETS.find(g => g.key === key);
-        if (!preset) return prev;
-        const updated = {...prev, [preset.key]: preset.default};
-        localStorage.setItem("modern-health-goals", JSON.stringify(updated));
-        return updated;
-      });
-    }
   }
 
   function getDateRangeData(days: number) {

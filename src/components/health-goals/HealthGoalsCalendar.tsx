@@ -6,7 +6,7 @@ import { Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { addMonths, subMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, isSameMonth, isSameDay, format, parseISO } from "date-fns";
 
-// Utility to get all preset and custom goals for the log form
+// Utility to get all preset and custom goals
 function getAllGoals(goals: Record<string, string>, customGoals: Array<{ label: string; value: string; unit: string }>) {
   const presetGoalMeta: Record<string, { label: string; unit: string }> = {
     walk: { label: "Walk", unit: "km" },
@@ -15,6 +15,7 @@ function getAllGoals(goals: Record<string, string>, customGoals: Array<{ label: 
     gym: { label: "Gym", unit: "" },
     calories: { label: "Calories", unit: "kcal" },
   };
+  
   const preset = Object.entries(goals)
     .filter(([key]) => key !== "heart")
     .map(([key, value]) => ({
@@ -23,22 +24,19 @@ function getAllGoals(goals: Record<string, string>, customGoals: Array<{ label: 
       value,
       unit: presetGoalMeta[key]?.unit ?? "",
     }));
-  return [
-    ...preset,
-    ...customGoals.map(g => ({
-      key: g.label,
-      label: g.label,
-      value: g.value,
-      unit: g.unit,
-    })),
-  ];
+    
+  return [...preset, ...customGoals.map(g => ({
+    key: g.label,
+    label: g.label,
+    value: g.value,
+    unit: g.unit,
+  }))];
 }
 
-// Simple Calendar Grid (shows days of current month, highlights selected)
 function CalendarGrid({
   value,
   onChange,
-  highlightColor = "bg-purple-600",
+  highlightColor = "bg-teal-600",
   className,
 }: {
   value: string;
@@ -49,7 +47,6 @@ function CalendarGrid({
   const [month, setMonth] = useState(() => value ? parseISO(value) : new Date());
 
   useEffect(() => {
-    // if value's month is not in the current, update
     const newVal = value ? parseISO(value) : new Date();
     if (month.getMonth() !== newVal.getMonth() || month.getFullYear() !== newVal.getFullYear()) {
       setMonth(newVal);
@@ -58,11 +55,10 @@ function CalendarGrid({
 
   const firstDayOfMonth = startOfMonth(month);
   const lastDayOfMonth = endOfMonth(month);
-  const startDate = startOfWeek(firstDayOfMonth, { weekStartsOn: 0 });
-  const endDate = endOfWeek(lastDayOfMonth, { weekStartsOn: 0 });
+  const startDate = startOfWeek(firstDayOfMonth);
+  const endDate = endOfWeek(lastDayOfMonth);
   const today = new Date();
 
-  // Build 6 weeks grid
   let days = [];
   let day = startDate;
   while (day <= endDate) {
@@ -75,7 +71,6 @@ function CalendarGrid({
       <div className="flex items-center mb-2 justify-between">
         <button
           className="text-white/70 p-1 rounded hover:bg-white/10"
-          aria-label="Previous month"
           onClick={() => setMonth(subMonths(month, 1))}
           type="button"
         >
@@ -84,7 +79,6 @@ function CalendarGrid({
         <span className="text-white font-semibold text-base">{format(month, "MMMM yyyy")}</span>
         <button
           className="text-white/70 p-1 rounded hover:bg-white/10"
-          aria-label="Next month"
           onClick={() => setMonth(addMonths(month, 1))}
           type="button"
           disabled={format(addMonths(month, 1), "yyyy-MM") > format(today, "yyyy-MM")}
@@ -109,11 +103,10 @@ function CalendarGrid({
               className={cn(
                 "h-8 w-8 text-center rounded-full mx-auto flex items-center justify-center transition-all",
                 !inMonth ? "text-white/20 cursor-not-allowed" : "cursor-pointer text-white/90",
-                isSelected && highlightColor + " text-white font-bold",
+                isSelected && highlightColor,
                 isToday && !isSelected && "border border-white/30",
                 !isSelected && !isToday && "hover:bg-white/10"
               )}
-              aria-label={format(curr, "yyyy-MM-dd")}
               type="button"
             >
               {curr.getDate()}
@@ -147,52 +140,56 @@ export default function HealthGoalsCalendar({
   const isToday = selectedDate === todayStr;
 
   return (
-    <Card className="bg-black rounded-xl shadow mb-8 p-4 md:p-5 max-w-md mx-auto border border-white/10 dark:bg-black dark:border-white/10">
-      <div>
-        <div className="text-base font-semibold text-white mb-2">Pick a Date</div>
-        <CalendarGrid
-          value={selectedDate}
-          onChange={onDateSelected}
-          highlightColor="bg-purple-600"
-        />
-      </div>
-      <div className="bg-white/5 rounded-lg p-4 shadow-inner dark:bg-white/10 mt-4">
-        <div className="font-semibold mb-2 text-white">
-          {isToday ? "Log your progress today:" : `Progress on ${selectedDate}`}
+    <Card className="bg-black rounded-xl shadow mb-8 p-4 md:p-5 max-w-4xl mx-auto border border-white/10">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <div className="text-base font-semibold text-white mb-2">Pick a Date</div>
+          <CalendarGrid
+            value={selectedDate}
+            onChange={onDateSelected}
+            highlightColor="bg-teal-600"
+          />
         </div>
-        <ul className="space-y-3">
-          {allGoals.map((goal) => {
-            const goalLog = progressLog?.[selectedDate]?.[goal.key] ?? "";
-            return (
-              <li key={goal.key} className="flex items-center gap-3">
-                <span className="font-medium min-w-[80px] text-white">{goal.label}</span>
-                {isToday ? (
-                  <Input
-                    type="number"
-                    min={0}
-                    step="any"
-                    className="w-20 bg-black border-white/20 text-white"
-                    value={goalLog || ""}
-                    placeholder={`0${goal.unit ? " " + goal.unit : ""}`}
-                    onChange={e =>
-                      onDailyProgressChange(goal.key, e.target.value, todayStr)
-                    }
-                  />
-                ) : (
-                  <span className="text-white/70">
-                    {goalLog || 0} {goal.unit}
-                  </span>
+        <div>
+          <div className="bg-white/5 rounded-lg p-4 shadow-inner">
+            <div className="font-semibold mb-3 text-white">
+              {isToday ? "Log your progress today:" : `Progress on ${selectedDate}`}
+            </div>
+            <ul className="space-y-3">
+              {allGoals.map((goal) => {
+                const goalLog = progressLog?.[selectedDate]?.[goal.key] ?? "";
+                return (
+                  <li key={goal.key} className="flex items-center gap-3">
+                    <span className="font-medium min-w-[80px] text-white">{goal.label}</span>
+                    {isToday ? (
+                      <Input
+                        type="number"
+                        min={0}
+                        step="any"
+                        className="w-20 bg-black border-white/20 text-white"
+                        value={goalLog || ""}
+                        placeholder={`0${goal.unit ? " " + goal.unit : ""}`}
+                        onChange={e =>
+                          onDailyProgressChange(goal.key, e.target.value, todayStr)
+                        }
+                      />
+                    ) : (
+                      <span className="text-white/70">
+                        {goalLog || 0} {goal.unit}
+                      </span>
+                    )}
+                    {goal.unit && <span className="text-xs text-white/60">{goal.unit}</span>}
+                  </li>
                 )}
-                {goal.unit && <span className="text-xs ml-1 text-white/60">{goal.unit}</span>}
-              </li>
-            );
-          })}
-        </ul>
-        {!isToday && (
-          <div className="text-xs mt-3 text-white/50">
-            Only today's data can be updated. Viewing past data only.
+              )}
+            </ul>
+            {!isToday && (
+              <div className="text-xs mt-3 text-white/50">
+                Only today's data can be updated. Viewing past data only.
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </Card>
   );
